@@ -1,0 +1,56 @@
+server:
+  port: 8086
+
+spring:
+  config:
+    import:
+      - 'optional:nacos:ecommerce-common.yaml?group=ECOMMERCE_DEV'
+      - 'optional:nacos:ecommerce-inventory-service.yaml?group=ECOMMERCE_DEV'
+  application:
+    name: ecommerce-inventory-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+      config:
+        server-addr: localhost:8848
+        file-extension: yaml
+  datasource:
+    url: jdbc:mysql://localhost:3306/ecommerce_inventory?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: 736100
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
+      encoding: UTF-8
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: ecommerce
+    password: ecommerce123
+    listener:
+      simple:
+        default-requeue-rejected: false
+
+app:
+  mq:
+    enabled: true
+  integration:
+    merchant:
+      service-id: ecommerce-merchant-service
+      base-url: http://localhost:8084
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+

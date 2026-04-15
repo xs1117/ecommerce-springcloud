@@ -1,0 +1,40 @@
+server:
+  port: 8082
+
+spring:
+  config:
+    import:
+      - 'optional:nacos:ecommerce-common.yaml?group=ECOMMERCE_DEV'
+      - 'optional:nacos:ecommerce-ai-service.yaml?group=ECOMMERCE_DEV'
+  application:
+    name: ecommerce-ai-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+      config:
+        server-addr: localhost:8848
+        file-extension: yaml
+  ai:
+    openai:
+      api-key: ${ai.api-key:}
+      chat:
+        options:
+          model: ${ai.model}
+
+ai:
+  model: gpt-4o-mini
+  api-key: ${OPENAI_API_KEY:}
+  chat-service-base-url: ${AI_CHAT_SERVICE_BASE_URL:http://localhost:8080}
+  confirmation-ttl-seconds: 300
+  rag-top-k: 3
+  rag:
+    knowledge-files:
+      - classpath:rag/customer-service-knowledge.md
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+

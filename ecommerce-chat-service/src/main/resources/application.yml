@@ -1,0 +1,59 @@
+server:
+  port: 8089
+
+spring:
+  config:
+    import:
+      - 'optional:nacos:ecommerce-common.yaml?group=ECOMMERCE_DEV'
+      - 'optional:nacos:ecommerce-chat-service.yaml?group=ECOMMERCE_DEV'
+  application:
+    name: ecommerce-chat-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+      config:
+        server-addr: localhost:8848
+        file-extension: yaml
+  datasource:
+    url: jdbc:mysql://localhost:3306/ecommerce_chat?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: 736100
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
+      encoding: UTF-8
+
+security:
+  token-secret: "ecommerce-local-dev-secret-change-me"
+
+app:
+  integration:
+    merchant:
+      service-id: ecommerce-merchant-service
+      base-url: http://localhost:8084
+    order:
+      service-id: ecommerce-order-service
+      base-url: http://localhost:8087
+    payment:
+      service-id: ecommerce-payment-service
+      base-url: http://localhost:8088
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+

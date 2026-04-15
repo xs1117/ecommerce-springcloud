@@ -1,0 +1,27 @@
+server:
+  port: 8081
+
+spring:
+  config:
+    import:
+      - 'optional:nacos:ecommerce-common.yaml?group=ECOMMERCE_DEV'
+      - 'optional:nacos:ecommerce-dashboard.yaml?group=ECOMMERCE_DEV'
+  application:
+    name: ecommerce-dashboard
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+      config:
+        server-addr: localhost:8848
+        file-extension: yaml
+  jackson:
+    time-zone: Asia/Shanghai
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+

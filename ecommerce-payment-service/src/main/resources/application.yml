@@ -1,0 +1,53 @@
+server:
+  port: ${SERVER_PORT:8088}
+
+spring:
+  config:
+    import:
+      - 'optional:nacos:ecommerce-common.yaml?group=ECOMMERCE_DEV'
+      - 'optional:nacos:ecommerce-payment-service.yaml?group=ECOMMERCE_DEV'
+  application:
+    name: ecommerce-payment-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+      config:
+        server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+        file-extension: yaml
+  datasource:
+    url: ${PAYMENT_DB_URL:jdbc:mysql://localhost:3306/ecommerce_payment?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true}
+    username: ${PAYMENT_DB_USERNAME:root}
+    password: ${PAYMENT_DB_PASSWORD:736100}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
+      encoding: UTF-8
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:ecommerce}
+    password: ${RABBITMQ_PASSWORD:ecommerce123}
+
+app:
+  mq:
+    enabled: true
+  integration:
+    order:
+      service-id: ${ORDER_SERVICE_ID:ecommerce-order-service}
+      base-url: ${ORDER_BASE_URL:http://localhost:8087}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+

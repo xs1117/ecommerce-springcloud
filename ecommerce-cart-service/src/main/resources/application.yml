@@ -1,0 +1,49 @@
+server:
+  port: 8085
+
+spring:
+  config:
+    import:
+      - 'optional:nacos:ecommerce-common.yaml?group=ECOMMERCE_DEV'
+      - 'optional:nacos:ecommerce-cart-service.yaml?group=ECOMMERCE_DEV'
+  application:
+    name: ecommerce-cart-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+      config:
+        server-addr: localhost:8848
+        file-extension: yaml
+  data:
+    redis:
+      cluster:
+        nodes:
+          - localhost:7000
+          - localhost:7001
+          - localhost:7002
+          - localhost:7003
+          - localhost:7004
+          - localhost:7005
+      timeout: 3s
+      lettuce:
+        cluster:
+          refresh:
+            adaptive: true
+            period: 30s
+
+security:
+  token-secret: "ecommerce-local-dev-secret-change-me"
+
+app:
+  integration:
+    merchant:
+      service-id: ecommerce-merchant-service
+      base-url: http://localhost:8084
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+

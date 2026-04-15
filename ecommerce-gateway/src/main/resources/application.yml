@@ -1,0 +1,92 @@
+server:
+  port: 8080
+
+spring:
+  config:
+    import:
+      - 'optional:nacos:ecommerce-common.yaml?group=ECOMMERCE_DEV'
+      - 'optional:nacos:ecommerce-gateway.yaml?group=ECOMMERCE_DEV'
+  application:
+    name: ecommerce-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+      config:
+        server-addr: localhost:8848
+        file-extension: yaml
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - http://localhost:5173
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+      routes:
+        - id: user-service
+          uri: lb://ecommerce-user-service
+          predicates:
+            - Path=/api/user/**,/api/auth/**
+        - id: user-file-service
+          uri: lb://ecommerce-user-service
+          predicates:
+            - Path=/files/user/**
+        - id: merchant-admin-service
+          uri: lb://ecommerce-merchant-service
+          predicates:
+            - Path=/api/admin/merchant/**
+        - id: merchant-file-service
+          uri: lb://ecommerce-merchant-service
+          predicates:
+            - Path=/files/merchant/**
+        - id: admin-service
+          uri: lb://ecommerce-user-service
+          predicates:
+            - Path=/api/admin/**
+        - id: merchant-service
+          uri: lb://ecommerce-merchant-service
+          predicates:
+            - Path=/api/merchant/**
+        - id: cart-service
+          uri: lb://ecommerce-cart-service
+          predicates:
+            - Path=/api/cart/**
+        - id: inventory-service
+          uri: lb://ecommerce-inventory-service
+          predicates:
+            - Path=/api/inventory/**
+        - id: order-service
+          uri: lb://ecommerce-order-service
+          predicates:
+            - Path=/api/order/**
+        - id: payment-service
+          uri: lb://ecommerce-payment-service
+          predicates:
+            - Path=/api/payment/**
+        - id: dashboard-service
+          uri: lb://ecommerce-dashboard
+          predicates:
+            - Path=/api/home/**
+        - id: ai-service
+          uri: lb://ecommerce-ai-service
+          predicates:
+            - Path=/api/ai/**
+        - id: chat-service
+          uri: lb://ecommerce-chat-service
+          predicates:
+            - Path=/api/chat/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+

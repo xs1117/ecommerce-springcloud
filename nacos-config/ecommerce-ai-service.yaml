@@ -1,0 +1,26 @@
+spring:
+  jackson:
+    time-zone: Asia/Shanghai
+  ai:
+    openai:
+      api-key: ${ai.api-key:}
+      chat:
+        options:
+          model: ${ai.model}
+
+ai:
+  model: gpt-4o-mini
+  api-key: ""
+  chat-service-base-url: http://localhost:8080
+  confirmation-ttl-seconds: 300
+  rag-top-k: 3
+  rag:
+    knowledge-files:
+      - classpath:rag/customer-service-knowledge.md
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+

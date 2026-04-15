@@ -1,0 +1,81 @@
+server:
+  port: 8084
+
+spring:
+  config:
+    import:
+      - 'optional:nacos:ecommerce-common.yaml?group=ECOMMERCE_DEV'
+      - 'optional:nacos:ecommerce-merchant-service.yaml?group=ECOMMERCE_DEV'
+  application:
+    name: ecommerce-merchant-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+      config:
+        server-addr: localhost:8848
+        file-extension: yaml
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
+  datasource:
+    url: jdbc:mysql://localhost:3306/ecommerce_merchant?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: 736100
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+  sql:
+    init:
+      mode: always
+      encoding: UTF-8
+      continue-on-error: true
+  data:
+    redis:
+      cluster:
+        nodes:
+          - localhost:7000
+          - localhost:7001
+          - localhost:7002
+          - localhost:7003
+          - localhost:7004
+          - localhost:7005
+      timeout: 3s
+      lettuce:
+        cluster:
+          refresh:
+            adaptive: true
+            period: 30s
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: ecommerce
+    password: ecommerce123
+
+security:
+  token-secret: "ecommerce-local-dev-secret-change-me"
+
+app:
+  mq:
+    enabled: true
+  integration:
+    inventory:
+      service-id: ecommerce-inventory-service
+      base-url: http://localhost:8086
+  upload:
+    merchant-root: ./data/uploads/merchant
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
