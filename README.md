@@ -48,6 +48,17 @@ docker compose -f docker/redis-cluster/docker-compose.yml up -d
 docker exec -it redis-cluster-local redis-cli -p 7000 cluster nodes
 ```
 
+## Qdrant 向量数据库（AI RAG 联调）
+
+项目已提供 Qdrant 单节点配置：`docker/qdrant/docker-compose.yml`
+
+```powershell
+docker compose -f docker/qdrant/docker-compose.yml up -d
+curl http://localhost:6333/healthz
+```
+
+如果你要联调 `ecommerce-ai-service` 的向量检索，请先启动它。
+
 ## Nacos 配置中心（本地开发）
 
 仓库里已经补了一份可直接导入的配置模板：`nacos-config/`
@@ -75,13 +86,20 @@ docker exec -it redis-cluster-local redis-cli -p 7000 cluster nodes
 
 ### 1) 启动基础设施
 
-先启动 MySQL、Nacos 和 Redis Cluster。
+先启动 MySQL、Nacos、Redis Cluster 和 Qdrant。
 
 Redis Cluster：
 
 ```powershell
 docker compose -f .\docker\redis-cluster\docker-compose.yml up -d
 docker exec redis-cluster-local redis-cli -p 7000 cluster info
+```
+
+Qdrant：
+
+```powershell
+docker compose -f .\docker\qdrant\docker-compose.yml up -d
+curl http://localhost:6333/healthz
 ```
 
 建议先确认：

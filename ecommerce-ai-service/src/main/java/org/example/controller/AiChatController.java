@@ -1,7 +1,6 @@
 package org.example.controller;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import org.example.security.AuthenticatedUser;
 import org.example.service.AiChatCommand;
 import org.example.service.AiChatResult;
@@ -37,13 +36,14 @@ public class AiChatController {
         AiChatResult result = aiCustomerService.chat(
                 user,
                 authorization,
-                new AiChatCommand(request.message(), request.orderNo(), request.confirmationToken(), request.confirm())
+                new AiChatCommand(request.message(), request.imageUrl(), request.orderNo(), request.confirmationToken(), request.confirm())
         );
         return ResponseEntity.ok(result);
     }
 
     public record ChatRequest(
-            @NotBlank String message,
+            String message,
+            String imageUrl,
             String orderNo,
             String confirmationToken,
             Boolean confirm

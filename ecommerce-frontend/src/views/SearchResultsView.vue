@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
   fetchHomeData,
@@ -22,6 +22,9 @@ const currentPage = ref(1);
 const pageSize = ref(24);
 const loading = ref(false);
 const errorMessage = ref('');
+const speechRecognitionSupported = ref(false);
+const speechListening = ref(false);
+const speechTip = ref('');
 const homeData = ref({
   hotKeywords: [],
   categories: []
@@ -79,6 +82,97 @@ const openItem = (item) => {
 };
 
 const goHome = () => router.push('/home');
+
+let searchSpeechRecognition = null;
+
+const getSpeechRecognitionCtor = () => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  return window.SpeechRecognition || window.webkitSpeechRecognition || null;
+};
+
+const mapSpeechErrorMessage = (errorCode) => {
+  if (errorCode === 'not-allowed' || errorCode === 'service-not-allowed') {
+    return '请先允许麦克风权限';
+  }
+  if (errorCode === 'audio-capture') {
+    return '未检测到可用麦克风';
+  }
+  if (errorCode === 'network') {
+    return '网络异常，语音识别失败';
+  }
+  return '语音识别失败，请重试';
+};
+
+const sanitizeSpeechKeyword = (value) => {
+  return String(value || '')
+    .replace(/[^\u4e00-\u9fa5a-zA-Z0-9\s]/g, '')
+    .replace(/\s+/g, '');
+};
+
+const stopSpeechInput = () => {
+  if (searchSpeechRecognition && speechListening.value) {
+    searchSpeechRecognition.stop();
+  }
+};
+
+const toggleSpeechInput = () => {
+  if (speechListening.value) {
+    stopSpeechInput();
+    return;
+  }
+  const SpeechRecognition = getSpeechRecognitionCtor();
+  if (!SpeechRecognition) {
+    speechRecognitionSupported.value = false;
+    speechTip.value = '当前浏览器不支持语音输入';
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = 'zh-CN';
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 1;
+  recognition.continuous = false;
+
+  recognition.onstart = () => {
+    speechListening.value = true;
+    speechTip.value = '正在聆听，请说出关键词';
+  };
+
+  recognition.onresult = (event) => {
+    let transcript = '';
+    for (let index = event.resultIndex; index < event.results.length; index += 1) {
+      transcript += event.results[index]?.[0]?.transcript || '';
+    }
+    const clean = sanitizeSpeechKeyword(transcript);
+    if (clean) {
+      searchKeyword.value = clean;
+      const latestResult = event.results[event.results.length - 1];
+      if (latestResult?.isFinal) {
+        speechTip.value = '识别完成，已填入搜索框';
+      }
+    }
+  };
+
+  recognition.onerror = (event) => {
+    speechTip.value = mapSpeechErrorMessage(event?.error);
+  };
+
+  recognition.onend = () => {
+    speechListening.value = false;
+    searchSpeechRecognition = null;
+  };
+
+  try {
+    searchSpeechRecognition = recognition;
+    recognition.start();
+  } catch {
+    speechListening.value = false;
+    searchSpeechRecognition = null;
+    speechTip.value = '语音识别启动失败，请重试';
+  }
+};
 
 const loadSearch = async () => {
   loading.value = true;
@@ -165,6 +259,14 @@ watch(
   },
   { immediate: true }
 );
+
+onMounted(() => {
+  speechRecognitionSupported.value = Boolean(getSpeechRecognitionCtor());
+});
+
+onBeforeUnmount(() => {
+  stopSpeechInput();
+});
 </script>
 
 <template>
@@ -203,6 +305,20 @@ watch(
             </option>
           </select>
           <input v-model="searchKeyword" class="search-input" placeholder="输入关键词搜索商品或店铺" @keyup.enter="submitSearch()" />
+          <button
+            v-if="speechRecognitionSupported"
+            class="btn btn-outline voice-btn"
+            :class="{ listening: speechListening }"
+            :title="speechListening ? '点击停止语音输入' : '点击语音输入'"
+            @click="toggleSpeechInput"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
+              <path d="M19 10v1a7 7 0 0 1-14 0v-1"></path>
+              <line x1="12" y1="18" x2="12" y2="22"></line>
+              <line x1="8" y1="22" x2="16" y2="22"></line>
+            </svg>
+          </button>
           <select v-model="searchSort" class="search-sort">
             <option v-for="option in SEARCH_SORT_OPTIONS" :key="option.value" :value="option.value">
               {{ option.label }}
@@ -216,6 +332,7 @@ watch(
             搜索
           </button>
         </div>
+        <p v-if="speechTip" class="speech-tip">{{ speechTip }}</p>
 
         <div class="search-hints" v-if="homeData.hotKeywords.length">
           <span class="hint-label">
@@ -487,7 +604,7 @@ watch(
 
 .search-bar {
   display: grid;
-  grid-template-columns: 140px minmax(0, 1fr) 160px 140px;
+  grid-template-columns: 140px minmax(0, 1fr) 52px 160px 140px;
   gap: 12px;
   align-items: center;
 }
@@ -511,6 +628,25 @@ watch(
 
 .search-btn {
   height: 48px;
+}
+
+.voice-btn {
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  padding: 0;
+}
+
+.voice-btn.listening {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-rose-50);
+}
+
+.speech-tip {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: var(--color-gray-500);
 }
 
 .search-hints {

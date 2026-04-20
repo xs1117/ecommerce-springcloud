@@ -5,6 +5,7 @@ import { fetchProductDetail, formatCurrency } from '../services/home';
 import { api, uploadImage } from '../services/api';
 import { resolveImageUrls, serializeImageUrls } from '../services/images';
 import { addCartItem } from '../services/cart';
+import { getCurrentUserId } from '../services/auth';
 
 const route = useRoute();
 const router = useRouter();
@@ -13,6 +14,10 @@ const loading = ref(false);
 const errorMessage = ref('');
 const activeImageIndex = ref(0);
 const role = ref(localStorage.getItem('role') || 'USER');
+const currentUserId = ref(getCurrentUserId());
+const ownStoreIds = ref([]);
+const ownershipResolved = ref(false);
+const ownStoreOwnerUserId = ref(null);
 const commentLoading = ref(false);
 const commentError = ref('');
 const commentSubmitting = ref(false);
@@ -42,6 +47,34 @@ const galleryImages = computed(() => {
 });
 const activeImageUrl = computed(() => galleryImages.value[activeImageIndex.value] || galleryImages.value[0] || '');
 const isAdmin = computed(() => role.value === 'ADMIN');
+const isOwnStoreMerchant = computed(() => {
+  if (role.value !== 'MERCHANT') {
+    return false;
+  }
+  const storeId = Number(detail.value.product?.storeId || detail.value.store?.id || 0);
+  if (!storeId) {
+    return false;
+  }
+  const ownerUserId = Number(
+    detail.value.store?.ownerUserId
+    || detail.value.product?.ownerUserId
+    || ownStoreOwnerUserId.value
+    || 0
+  );
+  if (ownerUserId > 0 && currentUserId.value && ownerUserId === currentUserId.value) {
+    return true;
+  }
+  return ownStoreIds.value.includes(storeId);
+});
+const canContactMerchant = computed(() => {
+  if (role.value !== 'MERCHANT') {
+    return true;
+  }
+  if (!ownershipResolved.value) {
+    return false;
+  }
+  return !isOwnStoreMerchant.value;
+});
 const storeManagePath = computed(() => {
   const storeId = detail.value.product?.storeId;
   if (!storeId) {
@@ -58,6 +91,7 @@ const loadDetail = async () => {
   activeImageIndex.value = 0;
   try {
     detail.value = await fetchProductDetail(productId.value);
+    await resolveMerchantOwnership();
   } catch (error) {
     detail.value = {
       product: null,
@@ -67,6 +101,52 @@ const loadDetail = async () => {
     errorMessage.value = error?.response?.data?.message || '加载商品详情失败';
   } finally {
     loading.value = false;
+  }
+};
+
+const resolveMerchantOwnership = async () => {
+  if (role.value !== 'MERCHANT') {
+    ownershipResolved.value = true;
+    ownStoreOwnerUserId.value = null;
+    return;
+  }
+
+  ownershipResolved.value = false;
+  ownStoreOwnerUserId.value = null;
+  await loadMyStoreIdsIfNeeded();
+
+  const storeId = Number(detail.value.product?.storeId || detail.value.store?.id || 0);
+  if (!storeId) {
+    ownershipResolved.value = true;
+    return;
+  }
+
+  if (!currentUserId.value) {
+    currentUserId.value = getCurrentUserId();
+  }
+
+  try {
+    const { data } = await api.get(`/api/merchant/public/stores/${storeId}`);
+    const owner = Number(data?.ownerUserId || 0);
+    ownStoreOwnerUserId.value = owner > 0 ? owner : null;
+  } catch {
+    // Keep fallback based on ownStoreIds when public store detail is unavailable.
+  } finally {
+    ownershipResolved.value = true;
+  }
+};
+
+const loadMyStoreIdsIfNeeded = async () => {
+  if (role.value !== 'MERCHANT' || ownStoreIds.value.length) {
+    return;
+  }
+  try {
+    const { data } = await api.get('/api/merchant/stores/me');
+    ownStoreIds.value = Array.isArray(data)
+      ? data.map((item) => Number(item?.id || 0)).filter((id) => id > 0)
+      : [];
+  } catch {
+    ownStoreIds.value = [];
   }
 };
 
@@ -197,8 +277,14 @@ const openStore = () => {
   }
 };
 
-const goChat = () => {
+const goChat = async () => {
   if (!detail.value.product?.storeId) {
+    return;
+  }
+  if (role.value === 'MERCHANT' && !ownershipResolved.value) {
+    await resolveMerchantOwnership();
+  }
+  if (!canContactMerchant.value) {
     return;
   }
   router.push({
@@ -390,7 +476,14 @@ watch(productId, async () => {
             </div>
 
             <div class="action-buttons">
-              <button class="btn btn-outline btn-lg" @click="goChat">
+              <button
+                class="btn btn-outline btn-lg"
+                :disabled="!canContactMerchant"
+                :title="!ownershipResolved && role === 'MERCHANT'
+                  ? '正在校验店铺归属...'
+                  : (isOwnStoreMerchant ? '商家不能联系客服咨询自己店铺商品' : '联系客服')"
+                @click="goChat"
+              >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path>
                 </svg>
@@ -419,6 +512,8 @@ watch(productId, async () => {
                 回到搜索
               </button>
             </div>
+            <p v-if="role === 'MERCHANT' && !ownershipResolved" class="owner-contact-tip">正在校验店铺归属，请稍候...</p>
+            <p v-if="isOwnStoreMerchant" class="owner-contact-tip">你是该店铺商家，暂不支持咨询自己店铺商品。</p>
           </div>
         </section>
 
@@ -884,6 +979,12 @@ watch(productId, async () => {
 
 .action-buttons .btn {
   flex: 1;
+}
+
+.owner-contact-tip {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--color-gray-500);
 }
 
 .store-info {

@@ -1,6 +1,7 @@
 package org.example.service;
 
 import java.util.Map;
+import java.util.List;
 
 public record AiChatResult(
         String model,
@@ -10,7 +11,8 @@ public record AiChatResult(
         Map<String, Object> suggestedAction,
         boolean executed,
         Map<String, Object> executionResult,
-        String ragContext
+        String ragContext,
+        List<Map<String, Object>> recommendProducts
 ) {
 }
 

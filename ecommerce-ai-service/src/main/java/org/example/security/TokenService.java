@@ -20,7 +20,8 @@ public class TokenService {
     private final ObjectMapper objectMapper;
     private final String secret;
 
-    public TokenService(ObjectMapper objectMapper, @Value("${security.token-secret}") String secret) {
+    public TokenService(ObjectMapper objectMapper,
+                        @Value("${security.token-secret:ecommerce-local-dev-secret-change-me}") String secret) {
         this.objectMapper = objectMapper;
         this.secret = secret;
     }

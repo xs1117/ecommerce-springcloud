@@ -59,7 +59,6 @@ onBeforeUnmount(() => {
       <span v-if="count > 0" class="cart-floating-badge">{{ count }}</span>
     </span>
     <span class="cart-floating-label">购物车</span>
-    <span class="cart-floating-meta">{{ amount ? `￥${amount.toFixed(2)}` : '查看' }}</span>
   </button>
 </template>
 
@@ -76,17 +75,17 @@ onBeforeUnmount(() => {
   gap: 6px;
   min-width: 72px;
   padding: 14px 12px;
-  border-radius: 20px;
+  border-radius: 18px;
   border: 1px solid rgba(225, 29, 72, 0.18);
   background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.12);
   color: var(--color-gray-700);
   backdrop-filter: blur(16px);
 }
 
 .cart-floating-button:hover {
   transform: translateY(-50%) translateX(-2px);
-  box-shadow: 0 18px 36px rgba(225, 29, 72, 0.18);
+  box-shadow: 0 14px 30px rgba(225, 29, 72, 0.16);
   color: var(--color-primary);
 }
 
@@ -120,17 +119,13 @@ onBeforeUnmount(() => {
   letter-spacing: 0.12em;
 }
 
-.cart-floating-meta {
-  font-size: 12px;
-  color: var(--color-gray-500);
-  white-space: nowrap;
-}
 
 @media (max-width: 768px) {
   .cart-floating-button {
     right: 10px;
     min-width: 60px;
     padding: 12px 10px;
+    border-radius: 16px;
   }
 
   .cart-floating-label {

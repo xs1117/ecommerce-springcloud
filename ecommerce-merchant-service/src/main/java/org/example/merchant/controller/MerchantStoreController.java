@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 
@@ -174,6 +176,14 @@ public class MerchantStoreController {
         return ResponseEntity.ok(storeService.productAvailability(productId));
     }
 
+    @GetMapping("/internal/products/index")
+    public ResponseEntity<Map<String, Object>> listProductsForImageIndex(@RequestParam(name = "updatedAfter", required = false) String updatedAfter,
+                                                                         @RequestParam(name = "cursorId", required = false) Long cursorId,
+                                                                         @RequestParam(name = "limit", required = false) Integer limit) {
+        LocalDateTime updatedAfterTime = parseDateTime(updatedAfter);
+        return ResponseEntity.ok(storeService.listProductsForImageIndex(updatedAfterTime, cursorId, limit));
+    }
+
     @PostMapping("/products/{productId}/comments")
     public ResponseEntity<Map<String, Object>> createComment(Authentication authentication,
                                                              @PathVariable("productId") Long productId,
@@ -264,6 +274,17 @@ public class MerchantStoreController {
             @NotNull Long productId,
             @NotNull @Min(1) Integer quantity
     ) {
+    }
+
+    private LocalDateTime parseDateTime(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDateTime.parse(value.trim());
+        } catch (DateTimeParseException ex) {
+            return LocalDateTime.parse(value.trim().replace(" ", "T"));
+        }
     }
 }
 

@@ -15,22 +15,54 @@ spring:
       config:
         server-addr: localhost:8848
         file-extension: yaml
-  ai:
-    openai:
-      api-key: ${ai.api-key:}
-      chat:
-        options:
-          model: ${ai.model}
 
 ai:
-  model: gpt-4o-mini
-  api-key: ${OPENAI_API_KEY:}
+  provider: minimax
+  llm-enabled: ${AI_LLM_ENABLED:true}
+  model: ${AI_MODEL:MiniMax-M2.7}
+  api-key: ${MINIMAX_API_KEY:}
+  group-id: ${MINIMAX_GROUP_ID:}
+  base-url: ${MINIMAX_BASE_URL:https://api.whatai.cc}
+  chat-path: ${MINIMAX_CHAT_PATH:/v1/chat/completions}
+  chat-timeout-millis: ${AI_CHAT_TIMEOUT_MILLIS:45000}
+  max-retry-attempts: ${AI_MAX_RETRY_ATTEMPTS:3}
+  retry-backoff-millis: ${AI_RETRY_BACKOFF_MILLIS:350}
   chat-service-base-url: ${AI_CHAT_SERVICE_BASE_URL:http://localhost:8080}
   confirmation-ttl-seconds: 300
   rag-top-k: 3
   rag:
+    vector-enabled: ${AI_RAG_VECTOR_ENABLED:true}
+    index-on-startup: ${AI_RAG_INDEX_ON_STARTUP:true}
+    qdrant-url: ${AI_QDRANT_URL:http://localhost:6333}
+    qdrant-api-key: ${AI_QDRANT_API_KEY:}
+    qdrant-collection: ${AI_QDRANT_COLLECTION:ecommerce_ai_customer_knowledge}
+    embedding-base-url: ${AI_EMBEDDING_BASE_URL:${MINIMAX_BASE_URL:https://api.whatai.cc}}
+    embedding-path: ${AI_EMBEDDING_PATH:/v1/embeddings}
+    embedding-model: ${AI_EMBEDDING_MODEL:text-embedding-3-small}
+    embedding-api-key: ${AI_EMBEDDING_API_KEY:}
+    embedding-dimension: ${AI_EMBEDDING_DIMENSION:256}
+    chunk-max-chars: ${AI_RAG_CHUNK_MAX_CHARS:500}
+    chunk-overlap-chars: ${AI_RAG_CHUNK_OVERLAP_CHARS:80}
+    minimum-score: ${AI_RAG_MINIMUM_SCORE:0.2}
     knowledge-files:
       - classpath:rag/customer-service-knowledge.md
+
+  image-compare:
+    enabled: ${AI_IMAGE_COMPARE_ENABLED:true}
+    qdrant-enabled: ${AI_IMAGE_COMPARE_QDRANT_ENABLED:true}
+    qdrant-url: ${AI_IMAGE_COMPARE_QDRANT_URL:${AI_QDRANT_URL:http://localhost:6333}}
+    qdrant-api-key: ${AI_IMAGE_COMPARE_QDRANT_API_KEY:${AI_QDRANT_API_KEY:}}
+    qdrant-collection: ${AI_IMAGE_COMPARE_QDRANT_COLLECTION:ecommerce_ai_product_image_index}
+    image-base-url: ${AI_IMAGE_COMPARE_IMAGE_BASE_URL:http://localhost:8084}
+    index-on-startup: ${AI_IMAGE_COMPARE_INDEX_ON_STARTUP:true}
+    sync-page-size: ${AI_IMAGE_COMPARE_SYNC_PAGE_SIZE:200}
+    incremental-sync-delay-millis: ${AI_IMAGE_COMPARE_INCREMENTAL_SYNC_DELAY_MILLIS:30000}
+    candidate-limit: ${AI_IMAGE_COMPARE_CANDIDATE_LIMIT:80}
+    top-k: ${AI_IMAGE_COMPARE_TOP_K:6}
+    minimum-score: ${AI_IMAGE_COMPARE_MINIMUM_SCORE:0.70}
+
+security:
+  token-secret: "ecommerce-local-dev-secret-change-me"
 
 management:
   endpoints:

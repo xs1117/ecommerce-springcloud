@@ -254,7 +254,7 @@ onMounted(loadProfile);
             <label>当前密码</label>
             <input v-model="passwordForm.currentPassword" type="password" placeholder="请输入当前密码" class="form-input" />
           </div>
-          <div class="form-item">
+          <div class="form-item" style="grid-column: span 1; grid-row: 2;">
             <label>新密码</label>
             <input v-model="passwordForm.newPassword" type="password" placeholder="请输入新密码（至少6位）" class="form-input" />
           </div>

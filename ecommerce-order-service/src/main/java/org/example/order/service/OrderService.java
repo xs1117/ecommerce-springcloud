@@ -26,10 +26,12 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -76,6 +78,8 @@ public class OrderService {
 
     @Transactional
     public Map<String, Object> createOrder(CreateOrderRequest request) {
+        validateNotSelfPurchase(request);
+
         String orderNo = generateOrderNo(request.userId());
         int shard = shardByUserId(request.userId());
         String orderTable = "order_info_" + shard;
@@ -135,6 +139,64 @@ public class OrderService {
         result.put("discountAmount", couponApplyResult.discountAmount());
         result.put("couponId", request.couponId());
         return result;
+    }
+
+    private void validateNotSelfPurchase(CreateOrderRequest request) {
+        if (request == null || request.items() == null || request.items().isEmpty()) {
+            return;
+        }
+        Set<Long> storeIds = new LinkedHashSet<>();
+        for (CreateOrderRequest.CreateOrderItem item : request.items()) {
+            if (item.storeId() == null) {
+                throw new IllegalArgumentException("storeId is required");
+            }
+            storeIds.add(item.storeId());
+        }
+
+        String merchantTargetBaseUrl;
+        try {
+            merchantTargetBaseUrl = endpointResolver.resolveBaseUrl(merchantServiceId, merchantBaseUrl);
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("商家服务不可用，暂时无法校验店铺归属");
+        }
+
+        for (Long storeId : storeIds) {
+            try {
+                ResponseEntity<Map> response = restTemplate.getForEntity(
+                        merchantTargetBaseUrl + "/api/merchant/public/stores/{storeId}",
+                        Map.class,
+                        storeId
+                );
+                Map body = response.getBody();
+                if (body == null) {
+                    throw new IllegalArgumentException("store not found");
+                }
+                Long ownerUserId = toLong(body.get("ownerUserId"));
+                if (ownerUserId != null && ownerUserId.equals(request.userId())) {
+                    throw new IllegalArgumentException("商家不能购买自己店铺的商品");
+                }
+            } catch (HttpClientErrorException.NotFound ex) {
+                throw new IllegalArgumentException("store not found");
+            } catch (IllegalArgumentException ex) {
+                throw ex;
+            } catch (Exception ex) {
+                throw new IllegalArgumentException("校验店铺归属失败，请稍后重试");
+            }
+        }
+    }
+
+    private Long toLong(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        try {
+            return Long.parseLong(String.valueOf(value));
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     public Map<String, Object> getOrder(String orderNo) {
@@ -326,6 +388,9 @@ public class OrderService {
         int shard = shardByOrderNo(orderNo);
         String orderTable = "order_info_" + shard;
         int updated = orderShardMapper.updateOrderStatusIfCurrent(orderTable, orderNo, OrderStatus.AFTER_SALE.name(), OrderStatus.TO_RECEIVE.name());
+        if (updated <= 0) {
+            updated = orderShardMapper.updateOrderStatusIfCurrent(orderTable, orderNo, OrderStatus.AFTER_SALE.name(), OrderStatus.TO_SHIP.name());
+        }
         if (updated <= 0) {
             OrderInfo latest = orderShardMapper.findByOrderNo(orderTable, orderNo);
             throw new IllegalArgumentException("order status is " + (latest == null ? "UNKNOWN" : latest.getStatus()) + ", cannot apply after-sale");

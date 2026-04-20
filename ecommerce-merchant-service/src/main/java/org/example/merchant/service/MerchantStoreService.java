@@ -12,6 +12,9 @@ import org.example.merchant.domain.MerchantStoreStatus;
 import org.example.merchant.repository.MerchantProductCommentRepository;
 import org.example.merchant.repository.MerchantProductRepository;
 import org.example.merchant.repository.MerchantStoreRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.http.HttpStatus;
@@ -27,6 +30,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -480,6 +484,24 @@ public class MerchantStoreService {
         return result;
     }
 
+    public Map<String, Object> listProductsForImageIndex(LocalDateTime updatedAfter, Long cursorId, Integer limit) {
+        long cursor = cursorId == null ? 0L : Math.max(0L, cursorId);
+        int size = clampLimit(limit, 200, 500);
+        PageRequest pageable = PageRequest.of(0, size, Sort.by(Sort.Direction.ASC, "id"));
+        Page<MerchantProduct> page = updatedAfter == null
+                ? productRepository.findByIdGreaterThan(cursor, pageable)
+                : productRepository.findByUpdatedAtGreaterThanEqualAndIdGreaterThan(updatedAfter, cursor, pageable);
+        List<MerchantProduct> rows = page.getContent();
+        List<Map<String, Object>> items = rows.stream().map(this::toImageIndexProductView).toList();
+        long nextCursor = rows.isEmpty() ? cursor : rows.get(rows.size() - 1).getId();
+        return Map.of(
+                "items", items,
+                "nextCursorId", nextCursor,
+                "hasMore", rows.size() >= size,
+                "serverTime", LocalDateTime.now().toString()
+        );
+    }
+
     @Transactional
     public Map<String, Object> adminUpdateStoreStatus(Long storeId, MerchantStoreStatus status) {
         MerchantStore store = storeRepository.findById(storeId)
@@ -785,6 +807,19 @@ public class MerchantStoreService {
         result.put("city", storeCity(store));
         result.put("rating", storeRating(store));
         result.put("tag", StringUtils.hasText(product.getTags()) ? firstTag(product.getTags()) : productTag(product));
+        return result;
+    }
+
+    private Map<String, Object> toImageIndexProductView(MerchantProduct product) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("id", product.getId());
+        result.put("title", product.getTitle());
+        result.put("imageUrl", product.getImageUrl() == null ? "" : product.getImageUrl());
+        result.put("price", product.getPrice());
+        result.put("status", product.getStatus() == null ? "" : product.getStatus().name());
+        result.put("updatedAt", product.getUpdatedAt());
+        MerchantStore store = activeStore(product.getStoreId());
+        result.put("storeName", store == null ? "" : store.getStoreName());
         return result;
     }
 

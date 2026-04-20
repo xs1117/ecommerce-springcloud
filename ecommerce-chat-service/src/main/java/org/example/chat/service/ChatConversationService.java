@@ -88,9 +88,7 @@ public class ChatConversationService {
         if (merchantUserId == null || merchantUserId <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "店铺商家信息异常");
         }
-        if (Objects.equals(merchantUserId, user.userId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "商家无需为自己的店铺新建会话");
-        }
+        assertMerchantNotContactOwnStore(user, merchantUserId);
 
         Map<String, Object> product = null;
         if (productId != null && productId > 0) {
@@ -117,6 +115,15 @@ public class ChatConversationService {
         }
 
         return toConversationView(conversation, user);
+    }
+
+    private void assertMerchantNotContactOwnStore(AuthenticatedUser user, Long merchantUserId) {
+        if (user == null || user.userId() == null || merchantUserId == null) {
+            return;
+        }
+        if (Objects.equals(merchantUserId, user.userId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "商家不能联系客服咨询自己店铺商品");
+        }
     }
 
     @Transactional
