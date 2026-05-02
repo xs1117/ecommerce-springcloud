@@ -6,6 +6,7 @@ import java.util.List;
 public record AiChatResult(
         String model,
         String reply,
+        String thinking,
         boolean requiresConfirmation,
         String confirmationToken,
         Map<String, Object> suggestedAction,

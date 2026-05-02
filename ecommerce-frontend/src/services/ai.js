@@ -16,13 +16,14 @@ export const uploadAiImage = async (file) => {
   return uploadImage('/api/merchant/upload/product', file);
 };
 
-export const sendAiMessage = async ({ message, imageUrl = '', orderNo = '', confirmationToken = '', confirm = false } = {}) => {
+export const sendAiMessage = async ({ message, imageUrl = '', orderNo = '', confirmationToken = '', confirm = false, history = [] } = {}) => {
   const payload = {
     message: message || null,
     imageUrl: imageUrl || null,
     orderNo: orderNo || null,
     confirmationToken: confirmationToken || null,
-    confirm: !!confirm
+    confirm: !!confirm,
+    history: Array.isArray(history) ? history : []
   };
   try {
     const { data } = await api.post('/api/ai/chat', payload, { timeout: AI_CHAT_TIMEOUT_MS });

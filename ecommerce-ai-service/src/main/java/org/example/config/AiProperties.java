@@ -162,9 +162,9 @@ public class AiProperties {
         private String imageBaseUrl = "http://localhost:8084";
         private boolean indexOnStartup = true;
         private int syncPageSize = 200;
-        private int candidateLimit = 80;
-        private int topK = 6;
-        private double minimumScore = 0.70d;
+        private int candidateLimit = 200;
+        private int topK = 12;
+        private double minimumScore = 0.55d;
 
         public boolean isEnabled() {
             return enabled;

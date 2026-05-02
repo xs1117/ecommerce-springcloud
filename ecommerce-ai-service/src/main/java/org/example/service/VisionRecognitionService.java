@@ -12,11 +12,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Base64;
 
 @Service
 public class VisionRecognitionService {
@@ -49,13 +56,18 @@ public class VisionRecognitionService {
 		}
 
 		String absoluteImageUrl = toAbsoluteUrl(imageUrl.trim());
+		String visionImageRef = toVisionImageReference(absoluteImageUrl);
+		log.info("VisionRecognitionService.recognizeProduct called. imageUrl={}, absoluteUrl={}, visionRefType={}",
+				imageUrl,
+				absoluteImageUrl,
+				visionImageRef.startsWith("data:") ? "data-url" : "remote-url");
 		String response;
 		try {
 			response = restClient.post()
 					.uri(buildChatUri())
 					.contentType(MediaType.APPLICATION_JSON)
 					.header(HttpHeaders.AUTHORIZATION, buildAuthorizationHeader(aiProperties.getApiKey()))
-					.body(buildVisionRequest(absoluteImageUrl, userMessage))
+					.body(buildVisionRequest(visionImageRef, userMessage))
 					.retrieve()
 					.toEntity(String.class)
 					.getBody();
@@ -63,7 +75,9 @@ public class VisionRecognitionService {
 			log.warn("Vision recognition call failed. imageUrl={}, error={}", absoluteImageUrl, ex.getMessage());
 			return VisionResult.fallback(userMessage);
 		}
-		return parseVisionResult(response, userMessage);
+		VisionResult result = parseVisionResult(response, userMessage);
+		log.info("Vision parse result: productName={}, keyword={}, confidence={}", result.productName(), result.keyword(), result.confidence());
+		return result;
 	}
 
 	private URI buildChatUri() {
@@ -108,24 +122,74 @@ public class VisionRecognitionService {
 			}
 
 			String trimmed = content.trim();
-			if (trimmed.startsWith("{")) {
-				JsonNode data = objectMapper.readTree(trimmed);
-				String productName = asText(data.path("productName"));
-				String keyword = asText(data.path("keyword"));
-				String confidence = asText(data.path("confidence"));
+			log.info("Vision raw content: {}", trimmed.length() > 200 ? trimmed.substring(0, 200) + "..." : trimmed);
+
+			// Try to extract first JSON object anywhere in the content
+			Optional<JsonNode> maybeJson = extractFirstJsonNode(trimmed);
+			if (maybeJson.isPresent()) {
+				JsonNode data = maybeJson.get();
+				String productName = sanitizeText(asText(data.path("productName")));
+				String keyword = sanitizeText(asText(data.path("keyword")));
+				String confidence = sanitizeText(asText(data.path("confidence")));
 				if (!StringUtils.hasText(keyword)) {
 					keyword = productName;
 				}
 				if (!StringUtils.hasText(keyword)) {
-					return VisionResult.fallback(userMessage);
+					return VisionResult.empty();
 				}
 				return new VisionResult(productName, keyword, confidence);
 			}
-			return new VisionResult(trimmed, trimmed, "");
+
+			// No JSON found: fail closed instead of leaking refusal text as product info
+			return VisionResult.empty();
 		} catch (Exception ex) {
-			log.warn("Vision response parse failed. error={}", ex.getMessage());
-			return VisionResult.fallback(userMessage);
+			log.warn("Vision response parse failed. error={}", ex.getMessage(), ex);
+			return VisionResult.empty();
 		}
+	}
+
+	private Optional<JsonNode> extractFirstJsonNode(String text) {
+		if (!StringUtils.hasText(text)) {
+			return Optional.empty();
+		}
+		int start = text.indexOf('{');
+		int end = text.lastIndexOf('}');
+		if (start >= 0 && end >= start) {
+			String candidate = text.substring(start, end + 1);
+			try {
+				JsonNode node = objectMapper.readTree(candidate);
+				return Optional.of(node);
+			} catch (Exception e) {
+				// try to be forgiving: attempt smaller spans (find matching braces)
+				int depth = 0;
+				for (int i = start; i < text.length(); i++) {
+					char c = text.charAt(i);
+					if (c == '{') depth++;
+					else if (c == '}') depth--;
+					if (depth == 0) {
+						String cand = text.substring(start, i + 1);
+						try {
+							JsonNode n2 = objectMapper.readTree(cand);
+							return Optional.of(n2);
+						} catch (Exception ex) {
+							// continue searching
+						}
+					}
+				}
+			}
+		}
+		return Optional.empty();
+	}
+
+	private String sanitizeText(String s) {
+		if (!StringUtils.hasText(s)) return "";
+		// remove tags like <think> and other angle-bracket content, control chars
+		String cleaned = s.replaceAll("(?i)<[^>]+>", "");
+		cleaned = cleaned.replaceAll("[\\p{Cntrl}&&[^\\r\\n\\t]]+", "");
+		cleaned = cleaned.replaceAll("^[\"'\\s]+|[\"'\\s]+$", "").trim();
+		// limit length
+		if (cleaned.length() > 300) cleaned = cleaned.substring(0, 300).trim();
+		return cleaned;
 	}
 
 	private String readText(JsonNode root, String path) {
@@ -161,9 +225,13 @@ public class VisionRecognitionService {
 		if (value.startsWith("http://") || value.startsWith("https://")) {
 			return value;
 		}
-		String base = normalizeBaseUrl(aiProperties.getChatServiceBaseUrl());
+		// Prefer image base URL (used for product/image hosting). fall back to chatServiceBaseUrl
+		String imageBase = aiProperties.getImageCompare() == null ? null : aiProperties.getImageCompare().getImageBaseUrl();
+		String base = StringUtils.hasText(imageBase) ? normalizeBaseUrl(imageBase) : normalizeBaseUrl(aiProperties.getChatServiceBaseUrl());
 		String path = value.startsWith("/") ? value : "/" + value;
-		return base + path;
+		String absolute = base + path;
+		log.info("toAbsoluteUrl converted '{}' -> '{}' using base '{}'", value, absolute, base);
+		return absolute;
 	}
 
 	private String normalizeBaseUrl(String value) {
@@ -190,6 +258,68 @@ public class VisionRecognitionService {
 		return "Bearer " + trimmed;
 	}
 
+	private String toVisionImageReference(String absoluteImageUrl) {
+		if (!StringUtils.hasText(absoluteImageUrl)) {
+			return absoluteImageUrl;
+		}
+		if (isLocalOnlyUrl(absoluteImageUrl)) {
+			try {
+				return toDataUrl(absoluteImageUrl);
+			} catch (Exception ex) {
+				log.warn("Failed to convert local image URL to data URL, fallback to absolute URL. url={}, error={}", absoluteImageUrl, ex.getMessage());
+			}
+		}
+		return absoluteImageUrl;
+	}
+
+	private boolean isLocalOnlyUrl(String url) {
+		try {
+			URI uri = URI.create(url);
+			String host = uri.getHost();
+			if (!StringUtils.hasText(host)) {
+				return false;
+			}
+			String normalized = host.toLowerCase(Locale.ROOT);
+			return "localhost".equals(normalized)
+					|| "127.0.0.1".equals(normalized)
+					|| normalized.startsWith("10.")
+					|| normalized.startsWith("192.168.")
+					|| normalized.startsWith("172.16.")
+					|| normalized.startsWith("172.17.")
+					|| normalized.startsWith("172.18.")
+					|| normalized.startsWith("172.19.")
+					|| normalized.startsWith("172.2")
+					|| normalized.startsWith("172.3");
+		} catch (Exception ex) {
+			return false;
+		}
+	}
+
+	private String toDataUrl(String imageUrl) throws Exception {
+		URL url = URI.create(imageUrl).toURL();
+		URLConnection conn = url.openConnection();
+		conn.setConnectTimeout(Math.min(Math.max(aiProperties.getChatTimeoutMillis(), 1000), 5000));
+		conn.setReadTimeout(Math.max(aiProperties.getChatTimeoutMillis(), 1000));
+		String contentType = conn.getContentType();
+		if (!StringUtils.hasText(contentType) || contentType.toLowerCase(Locale.ROOT).contains("application/octet-stream")) {
+			contentType = URLConnection.guessContentTypeFromName(url.getPath());
+		}
+		if (!StringUtils.hasText(contentType)) {
+			contentType = "image/jpeg";
+		}
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		try (InputStream in = conn.getInputStream()) {
+			byte[] buffer = new byte[8192];
+			int len;
+			while ((len = in.read(buffer)) != -1) {
+				out.write(buffer, 0, len);
+			}
+		}
+		String dataUrl = "data:" + contentType + ";base64," + Base64.getEncoder().encodeToString(out.toByteArray());
+		log.info("Converted local image URL to data URL. sourceUrl={}, contentType={}, bytes={}", imageUrl, contentType, out.size());
+		return dataUrl;
+	}
+
 	public record VisionResult(String productName, String keyword, String confidence) {
 
 		public static VisionResult empty() {
@@ -197,15 +327,7 @@ public class VisionRecognitionService {
 		}
 
 		public static VisionResult fallback(String userMessage) {
-			if (StringUtils.hasText(userMessage)) {
-				String normalized = userMessage.trim();
-				return new VisionResult(normalized, normalized, "");
-			}
 			return empty();
-		}
-
-		public boolean hasKeyword() {
-			return StringUtils.hasText(keyword);
 		}
 	}
 }

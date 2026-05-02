@@ -5,7 +5,8 @@ public record AiChatCommand(
         String imageUrl,
         String orderNo,
         String confirmationToken,
-        Boolean confirm
+        Boolean confirm,
+        java.util.List<ChatTurn> history
 ) {
 }
 

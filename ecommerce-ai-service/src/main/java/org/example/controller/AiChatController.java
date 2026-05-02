@@ -36,7 +36,7 @@ public class AiChatController {
         AiChatResult result = aiCustomerService.chat(
                 user,
                 authorization,
-                new AiChatCommand(request.message(), request.imageUrl(), request.orderNo(), request.confirmationToken(), request.confirm())
+                new AiChatCommand(request.message(), request.imageUrl(), request.orderNo(), request.confirmationToken(), request.confirm(), request.history())
         );
         return ResponseEntity.ok(result);
     }
@@ -46,7 +46,8 @@ public class AiChatController {
             String imageUrl,
             String orderNo,
             String confirmationToken,
-            Boolean confirm
+            Boolean confirm,
+            java.util.List<org.example.service.ChatTurn> history
     ) {
     }
 }

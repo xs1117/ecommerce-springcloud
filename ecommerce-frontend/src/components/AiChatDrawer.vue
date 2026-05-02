@@ -200,9 +200,32 @@ const normalizeRecommendProducts = (value) => {
     }));
 };
 
+const buildConversationHistory = (latestUserMessage = '') => {
+  const turns = [];
+  const recentMessages = messages.value
+    .filter((item) => item && (item.role === 'user' || item.role === 'assistant'))
+    .filter((item) => !item.pending)
+    .slice(-8);
+  recentMessages.forEach((item) => {
+    if (!item?.content) {
+      return;
+    }
+    turns.push({
+      role: item.role,
+      content: String(item.content)
+    });
+  });
+  if (latestUserMessage) {
+    turns.push({ role: 'user', content: latestUserMessage });
+  }
+  return turns;
+};
+
 const appendMessage = (role, content, options = {}) => {
   const { thinking, answer } = role === 'assistant'
-    ? parseAssistantSections(content)
+    ? (options.thinking !== undefined
+      ? { thinking: options.thinking || '', answer: content }
+      : parseAssistantSections(content))
     : { thinking: '', answer: content };
   const next = {
     id: `${Date.now()}-${Math.random()}`,
@@ -241,14 +264,20 @@ const startPendingThinking = () => {
   return placeholder.id;
 };
 
-const finishPendingThinking = (messageId, finalContent) => {
+const finishPendingThinking = (messageId, result) => {
   clearThinkingTicker();
   const target = messages.value.find((item) => item.id === messageId);
   if (!target) {
-    appendMessage('assistant', finalContent);
+    if (result?.reply) {
+      appendMessage('assistant', result.reply, { thinking: result?.thinking, recommendProducts: result?.recommendProducts });
+    }
     return;
   }
-  const { thinking, answer } = parseAssistantSections(finalContent);
+  const structuredThinking = typeof result?.thinking === 'string' ? result.thinking.trim() : '';
+  const structuredReply = typeof result?.reply === 'string' ? result.reply.trim() : '';
+  const parsed = parseAssistantSections(structuredReply || '');
+  const thinking = structuredThinking || parsed.thinking;
+  const answer = structuredReply || parsed.answer;
   target.pending = false;
   target.content = answer;
   target.thinking = thinking;
@@ -327,6 +356,10 @@ const attachAssistantPayload = (messageId, result) => {
   if (!target) {
     return;
   }
+  if (result?.thinking !== undefined) {
+    target.thinking = result.thinking || '';
+    target.showThinking = !!result.thinking;
+  }
   target.recommendProducts = normalizeRecommendProducts(result?.recommendProducts);
   scrollMessagesToBottom();
 };
@@ -338,6 +371,7 @@ const submit = async () => {
     return;
   }
   errorMessage.value = '';
+  const history = buildConversationHistory(text || '【图片识别】');
   appendMessage('user', text || '【图片识别】', { userImageUrl: imageUrl });
   const pendingAssistantId = startPendingThinking();
   inputText.value = '';
@@ -349,12 +383,13 @@ const submit = async () => {
       imageUrl,
       orderNo: orderNo.value.trim(),
       confirmationToken: pendingToken.value,
-      confirm: false
+      confirm: false,
+      history
     });
     if (result?.reply) {
-      finishPendingThinking(pendingAssistantId, result.reply);
+      finishPendingThinking(pendingAssistantId, result);
     } else {
-      finishPendingThinking(pendingAssistantId, '我已收到你的消息，正在处理中。');
+      finishPendingThinking(pendingAssistantId, { reply: '我已收到你的消息，正在处理中。', thinking: '' });
     }
     attachAssistantPayload(pendingAssistantId, result);
     clearSelectedImage();
@@ -385,10 +420,11 @@ const confirmPendingAction = async () => {
       message: '确认',
       orderNo: orderNo.value.trim(),
       confirmationToken: pendingToken.value,
-      confirm: true
+      confirm: true,
+      history: buildConversationHistory('确认')
     });
     if (result?.reply) {
-      appendMessage('assistant', result.reply, { recommendProducts: result?.recommendProducts });
+      appendMessage('assistant', result.reply, { thinking: result?.thinking, recommendProducts: result?.recommendProducts });
     }
     pendingToken.value = '';
   } catch (error) {
@@ -410,10 +446,11 @@ const cancelPendingAction = async () => {
       message: '取消',
       orderNo: orderNo.value.trim(),
       confirmationToken: pendingToken.value,
-      confirm: false
+      confirm: false,
+      history: buildConversationHistory('取消')
     });
     if (result?.reply) {
-      appendMessage('assistant', result.reply, { recommendProducts: result?.recommendProducts });
+      appendMessage('assistant', result.reply, { thinking: result?.thinking, recommendProducts: result?.recommendProducts });
     }
     pendingToken.value = '';
   } catch (error) {
