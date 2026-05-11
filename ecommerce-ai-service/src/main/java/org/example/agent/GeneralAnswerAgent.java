@@ -3,6 +3,7 @@ package org.example.agent;
 import org.example.config.AiProperties;
 import org.example.service.AiChatResult;
 import org.example.service.OrderServiceClient;
+import org.example.service.ReplyPolisherService;
 import org.example.service.RagService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,15 +29,18 @@ public class GeneralAnswerAgent implements CustomerAgent {
     private final AiProperties aiProperties;
     private final RagService ragService;
     private final OrderServiceClient orderServiceClient;
+    private final ReplyPolisherService replyPolisherService;
 
     public GeneralAnswerAgent(ChatClient chatClient,
                               AiProperties aiProperties,
                               RagService ragService,
-                              OrderServiceClient orderServiceClient) {
+                              OrderServiceClient orderServiceClient,
+                              ReplyPolisherService replyPolisherService) {
         this.chatClient = chatClient;
         this.aiProperties = aiProperties;
         this.ragService = ragService;
         this.orderServiceClient = orderServiceClient;
+        this.replyPolisherService = replyPolisherService;
     }
 
     @Override
@@ -61,9 +65,10 @@ public class GeneralAnswerAgent implements CustomerAgent {
         String orderContext = resolveOrderContext(context.authorizationHeader(), context.orderNo());
         String historyContext = buildHistoryContext(context.history());
         AssistantReply assistantReply = buildGeneralReplyWithLlm(message, historyContext, ragContext, context.orderNo(), orderContext);
+        String polishedReply = polishReply(message, historyContext, ragContext, orderContext, assistantReply.reply());
         return new AiChatResult(
                 aiProperties.getModel(),
-                assistantReply.reply(),
+                polishedReply,
                 assistantReply.thinking(),
                 false,
                 null,
@@ -117,6 +122,19 @@ public class GeneralAnswerAgent implements CustomerAgent {
                     ex);
         }
         return fallbackReply(message, ragContext);
+    }
+
+    private String polishReply(String message, String historyContext, String ragContext, String orderContext, String draftReply) {
+        if (replyPolisherService == null) {
+            return draftReply;
+        }
+        return replyPolisherService.polish(
+                "通用问答",
+                draftReply,
+                message,
+                "ragContext=" + truncate(ragContext) + "\norderContext=" + truncate(orderContext),
+                historyContext
+        );
     }
 
     private AssistantReply fallbackReply(String message, String ragContext) {

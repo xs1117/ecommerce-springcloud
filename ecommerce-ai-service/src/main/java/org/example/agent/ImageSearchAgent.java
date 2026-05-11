@@ -3,6 +3,7 @@ package org.example.agent;
 import org.example.config.AiProperties;
 import org.example.service.AiChatResult;
 import org.example.service.MerchantCatalogClient;
+import org.example.service.ReplyPolisherService;
 import org.example.service.ProductImageCompareService;
 import org.example.service.ProductImageIndexSyncService;
 import org.example.service.VisionRecognitionService;
@@ -26,17 +27,20 @@ public class ImageSearchAgent implements CustomerAgent {
     private final MerchantCatalogClient merchantCatalogClient;
     private final ProductImageCompareService productImageCompareService;
     private final ProductImageIndexSyncService productImageIndexSyncService;
+    private final ReplyPolisherService replyPolisherService;
 
     public ImageSearchAgent(AiProperties aiProperties,
                             VisionRecognitionService visionRecognitionService,
                             MerchantCatalogClient merchantCatalogClient,
                             ProductImageCompareService productImageCompareService,
-                            ProductImageIndexSyncService productImageIndexSyncService) {
+                            ProductImageIndexSyncService productImageIndexSyncService,
+                            ReplyPolisherService replyPolisherService) {
         this.aiProperties = aiProperties;
         this.visionRecognitionService = visionRecognitionService;
         this.merchantCatalogClient = merchantCatalogClient;
         this.productImageCompareService = productImageCompareService;
         this.productImageIndexSyncService = productImageIndexSyncService;
+        this.replyPolisherService = replyPolisherService;
     }
 
     @Override
@@ -83,11 +87,16 @@ public class ImageSearchAgent implements CustomerAgent {
             }
         }
         if (similarProducts != null && !similarProducts.isEmpty()) {
-            String reply = "我已将你上传的图片与平台现有商品图进行比对，找到 " + similarProducts.size() + " 个高相似商品，你可以直接查看下方结果。";
+            String reply = polishReply(
+                    "图片搜索-高相似商品",
+                    "我已将你上传的图片与平台现有商品图进行比对，找到 " + similarProducts.size() + " 个高相似商品，你可以直接查看下方结果。",
+                    sanitizedMessage,
+                    "matchedCount=" + similarProducts.size()
+            );
             return new AiChatResult(
                     aiProperties.getModel(),
                     reply,
-                    "已完成图片比对并返回结果",
+                    polishReply("图片搜索-思考", "已完成图片比对并返回结果", sanitizedMessage, "matchedCount=" + similarProducts.size()),
                     false,
                     null,
                     null,
@@ -121,10 +130,16 @@ public class ImageSearchAgent implements CustomerAgent {
         }
         String keyword = StringUtils.hasText(sanitizedVisionKeyword) ? sanitizedVisionKeyword : sanitizedMessage;
         if (!StringUtils.hasText(keyword)) {
+            String reply = polishReply(
+                    "图片搜索-无法识别",
+                    "我暂时无法识别这张图片里的商品。你可以补充商品名称，或换一张更清晰的图再试。",
+                    sanitizedMessage,
+                    "imageUrl=" + imageUrl
+            );
             return new AiChatResult(
                     aiProperties.getModel(),
-                    "我暂时无法识别这张图片里的商品。你可以补充商品名称，或换一张更清晰的图再试。",
-                    "已尝试视觉识别，未找到明确关键词",
+                    reply,
+                    polishReply("图片搜索-思考", "已尝试视觉识别，未找到明确关键词", sanitizedMessage, "imageUrl=" + imageUrl),
                     false,
                     null,
                     null,
@@ -148,10 +163,16 @@ public class ImageSearchAgent implements CustomerAgent {
 
         if (products.isEmpty()) {
             String productName = (vision != null && StringUtils.hasText(vision.productName())) ? vision.productName() : keyword;
+            String reply = polishReply(
+                    "图片搜索-未命中商品",
+                    "我识别到可能是【" + productName + "】，但暂时没有找到匹配商品。你可以换个角度拍摄，或补充品牌/型号让我继续帮你找。",
+                    sanitizedMessage,
+                    "productName=" + productName
+            );
             return new AiChatResult(
                     aiProperties.getModel(),
-                    "我识别到可能是【" + productName + "】，但暂时没有找到匹配商品。你可以换个角度拍摄，或补充品牌/型号让我继续帮你找。",
-                    "已识别候选名称并检索但未命中",
+                    reply,
+                    polishReply("图片搜索-思考", "已识别候选名称并检索但未命中", sanitizedMessage, "productName=" + productName),
                     false,
                     null,
                     null,
@@ -163,11 +184,16 @@ public class ImageSearchAgent implements CustomerAgent {
         }
 
         String productName = (vision != null && StringUtils.hasText(vision.productName())) ? vision.productName() : keyword;
-        String reply = "我识别到可能是【" + productName + "】。已为你匹配到 " + products.size() + " 个相关商品，可直接点击下方卡片查看详情。";
+        String reply = polishReply(
+                "图片搜索-匹配商品",
+                "我识别到可能是【" + productName + "】。已为你匹配到 " + products.size() + " 个相关商品，可直接点击下方卡片查看详情。",
+                sanitizedMessage,
+                "productName=" + productName + ", matchedCount=" + products.size()
+        );
         return new AiChatResult(
                 aiProperties.getModel(),
                 reply,
-                "已识别并匹配到相关商品",
+                polishReply("图片搜索-思考", "已识别并匹配到相关商品", sanitizedMessage, "productName=" + productName + ", matchedCount=" + products.size()),
                 false,
                 null,
                 null,
@@ -252,6 +278,12 @@ public class ImageSearchAgent implements CustomerAgent {
 
     private String asText(Object value) {
         return value == null ? "" : String.valueOf(value).trim();
+    }
+
+    private String polishReply(String scenario, String draftReply, String userMessage, String facts) {
+        return replyPolisherService == null
+                ? draftReply
+                : replyPolisherService.polish(scenario, draftReply, userMessage, facts, null);
     }
 }
 

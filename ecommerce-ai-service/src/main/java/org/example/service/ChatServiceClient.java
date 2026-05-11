@@ -39,10 +39,16 @@ public class ChatServiceClient {
     public Map<String, Object> applyAfterSaleAction(String authorizationHeader,
                                                     Long conversationId,
                                                     String actionType,
-                                                    String remark) {
-        Map<String, Object> payload = remark == null || remark.isBlank()
-                ? Map.of("actionType", actionType)
-                : Map.of("actionType", actionType, "remark", remark);
+                                                    String remark,
+                                                    String reasonSummary) {
+        Map<String, Object> payload = new java.util.LinkedHashMap<>();
+        payload.put("actionType", actionType);
+        if (remark != null && !remark.isBlank()) {
+            payload.put("remark", remark);
+        }
+        if (reasonSummary != null && !reasonSummary.isBlank()) {
+            payload.put("reasonSummary", reasonSummary);
+        }
         return restClient.post()
                 .uri("/api/chat/conversations/{id}/after-sale/action", conversationId)
                 .header(HttpHeaders.AUTHORIZATION, authorizationHeader)

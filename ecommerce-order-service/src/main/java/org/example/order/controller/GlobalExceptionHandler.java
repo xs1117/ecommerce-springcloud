@@ -1,5 +1,7 @@
 package org.example.order.controller;
 
+import org.example.order.service.OrderLockAcquisitionException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -15,12 +17,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(Map.of("ok", false, "message", ex.getMessage()));
     }
 
+    @ExceptionHandler(OrderLockAcquisitionException.class)
+    public ResponseEntity<Map<String, Object>> orderLock(OrderLockAcquisitionException ex) {
+        return ResponseEntity.status(HttpStatus.LOCKED)
+                .body(Map.of("ok", false, "message", ex.getMessage()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> validation(MethodArgumentNotValidException ex) {
         String message = ex.getBindingResult().getFieldError() == null
                 ? "invalid request"
                 : ex.getBindingResult().getFieldError().getDefaultMessage();
-        return ResponseEntity.badRequest().body(Map.of("ok", false, "message", message));
+        return ResponseEntity.badRequest().body(Map.of("ok", false, "message", message == null ? "invalid request" : message));
     }
 }
 

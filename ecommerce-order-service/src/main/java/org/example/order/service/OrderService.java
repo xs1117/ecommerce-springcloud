@@ -52,9 +52,14 @@ public class OrderService {
     private final String merchantBaseUrl;
     private final String userBaseUrl;
     private final int payTimeoutMinutes;
+    private final boolean timeoutScanEnabled;
+    private final OrderDistributedLockService orderDistributedLockService;
+    private final OrderTimeoutQueueService orderTimeoutQueueService;
 
     public OrderService(OrderShardMapper orderShardMapper,
                         OrderEventPublisher eventPublisher,
+                        OrderDistributedLockService orderDistributedLockService,
+                        OrderTimeoutQueueService orderTimeoutQueueService,
                         IntegrationEndpointResolver endpointResolver,
                         @Value("${app.integration.inventory.service-id:ecommerce-inventory-service}") String inventoryServiceId,
                         @Value("${app.integration.merchant.service-id:ecommerce-merchant-service}") String merchantServiceId,
@@ -62,9 +67,12 @@ public class OrderService {
                         @Value("${app.integration.inventory.base-url:http://localhost:8086}") String inventoryBaseUrl,
                         @Value("${app.integration.merchant.base-url:http://localhost:8084}") String merchantBaseUrl,
                         @Value("${app.integration.user.base-url:http://localhost:8083}") String userBaseUrl,
-                        @Value("${app.order.pay-timeout-minutes:10}") int payTimeoutMinutes) {
+                        @Value("${app.order.pay-timeout-minutes:10}") int payTimeoutMinutes,
+                        @Value("${app.order.timeout-scan-enabled:false}") boolean timeoutScanEnabled) {
         this.orderShardMapper = orderShardMapper;
         this.eventPublisher = eventPublisher;
+        this.orderDistributedLockService = orderDistributedLockService;
+        this.orderTimeoutQueueService = orderTimeoutQueueService;
         this.endpointResolver = endpointResolver;
         this.restTemplate = new RestTemplate();
         this.inventoryServiceId = inventoryServiceId;
@@ -74,6 +82,7 @@ public class OrderService {
         this.merchantBaseUrl = merchantBaseUrl;
         this.userBaseUrl = userBaseUrl;
         this.payTimeoutMinutes = Math.max(1, payTimeoutMinutes);
+        this.timeoutScanEnabled = timeoutScanEnabled;
     }
 
     @Transactional
@@ -259,17 +268,27 @@ public class OrderService {
         if (event == null || event.orderNo() == null || event.orderNo().isBlank()) {
             return;
         }
-        String next = event.success() ? OrderStatus.WAIT_PAY.name() : OrderStatus.STOCK_FAILED.name();
-        int shard = shardByOrderNo(event.orderNo());
-        String orderTable = "order_info_" + shard;
-        int updated = orderShardMapper.updateOrderStatusIfCurrent(orderTable, event.orderNo(), next, OrderStatus.CREATED.name());
-        if (!event.success() && updated > 0) {
-            eventPublisher.publishOrderClosed(UUID.randomUUID().toString(), event.orderNo());
-        }
+        withOrderLock(event.orderNo(), () -> {
+            String next = event.success() ? OrderStatus.WAIT_PAY.name() : OrderStatus.STOCK_FAILED.name();
+            int shard = shardByOrderNo(event.orderNo());
+            String orderTable = "order_info_" + shard;
+            int updated = orderShardMapper.updateOrderStatusIfCurrent(orderTable, event.orderNo(), next, OrderStatus.CREATED.name());
+            if (event.success() && updated > 0) {
+                orderTimeoutQueueService.enqueueTimeoutClose(event.orderNo());
+            }
+            if (!event.success() && updated > 0) {
+                eventPublisher.publishOrderClosed(UUID.randomUUID().toString(), event.orderNo());
+            }
+            return null;
+        });
     }
 
     @Transactional
     public Map<String, Object> markPaid(String orderNo) {
+        return withOrderLock(orderNo, () -> markPaidInternal(orderNo));
+    }
+
+    private Map<String, Object> markPaidInternal(String orderNo) {
         int shard = shardByOrderNo(orderNo);
         String orderTable = "order_info_" + shard;
         String itemTable = "order_item_" + shard;
@@ -319,6 +338,10 @@ public class OrderService {
 
     @Transactional
     public Map<String, Object> closeOrder(String orderNo) {
+        return withOrderLock(orderNo, () -> closeOrderInternal(orderNo));
+    }
+
+    private Map<String, Object> closeOrderInternal(String orderNo) {
         int shard = shardByOrderNo(orderNo);
         String orderTable = "order_info_" + shard;
         OrderInfo info = orderShardMapper.findByOrderNo(orderTable, orderNo);
@@ -349,6 +372,10 @@ public class OrderService {
 
     @Transactional
     public Map<String, Object> shipOrder(Long storeId, String orderNo) {
+        return withOrderLock(orderNo, () -> shipOrderInternal(storeId, orderNo));
+    }
+
+    private Map<String, Object> shipOrderInternal(Long storeId, String orderNo) {
         if (storeId == null) {
             throw new IllegalArgumentException("storeId is required");
         }
@@ -373,6 +400,10 @@ public class OrderService {
 
     @Transactional
     public Map<String, Object> confirmReceipt(String orderNo) {
+        return withOrderLock(orderNo, () -> confirmReceiptInternal(orderNo));
+    }
+
+    private Map<String, Object> confirmReceiptInternal(String orderNo) {
         int shard = shardByOrderNo(orderNo);
         String orderTable = "order_info_" + shard;
         int updated = orderShardMapper.updateOrderStatusIfCurrent(orderTable, orderNo, OrderStatus.FINISHED.name(), OrderStatus.TO_RECEIVE.name());
@@ -385,6 +416,10 @@ public class OrderService {
 
     @Transactional
     public Map<String, Object> requestAfterSale(String orderNo) {
+        return withOrderLock(orderNo, () -> requestAfterSaleInternal(orderNo));
+    }
+
+    private Map<String, Object> requestAfterSaleInternal(String orderNo) {
         int shard = shardByOrderNo(orderNo);
         String orderTable = "order_info_" + shard;
         int updated = orderShardMapper.updateOrderStatusIfCurrent(orderTable, orderNo, OrderStatus.AFTER_SALE.name(), OrderStatus.TO_RECEIVE.name());
@@ -400,6 +435,10 @@ public class OrderService {
 
     @Transactional
     public Map<String, Object> forceCancelAfterSale(String orderNo) {
+        return withOrderLock(orderNo, () -> forceCancelAfterSaleInternal(orderNo));
+    }
+
+    private Map<String, Object> forceCancelAfterSaleInternal(String orderNo) {
         int shard = shardByOrderNo(orderNo);
         String orderTable = "order_info_" + shard;
         int updated = orderShardMapper.updateOrderStatusIfCurrent(orderTable, orderNo, OrderStatus.TO_RECEIVE.name(), OrderStatus.AFTER_SALE.name());
@@ -412,6 +451,10 @@ public class OrderService {
 
     @Transactional
     public Map<String, Object> forceRefundAfterSale(String orderNo) {
+        return withOrderLock(orderNo, () -> forceRefundAfterSaleInternal(orderNo));
+    }
+
+    private Map<String, Object> forceRefundAfterSaleInternal(String orderNo) {
         int shard = shardByOrderNo(orderNo);
         String orderTable = "order_info_" + shard;
         int updated = orderShardMapper.updateOrderStatusIfCurrent(orderTable, orderNo, OrderStatus.CLOSED.name(), OrderStatus.AFTER_SALE.name());
@@ -529,19 +572,25 @@ public class OrderService {
     @Scheduled(fixedDelay = 60000)
     @Transactional
     public void closeTimeoutOrders() {
+        if (!timeoutScanEnabled) {
+            return;
+        }
         for (int shard = 0; shard < 2; shard++) {
             String table = "order_info_" + shard;
             List<OrderInfo> timeoutOrders = orderShardMapper.findTimeoutOrders(table, payTimeoutMinutes);
             for (OrderInfo order : timeoutOrders) {
-                int updated = orderShardMapper.updateOrderStatusIfCurrent(
-                        table,
-                        order.getOrderNo(),
-                        OrderStatus.CLOSED.name(),
-                        OrderStatus.WAIT_PAY.name()
-                );
-                if (updated > 0) {
-                    eventPublisher.publishOrderClosed(UUID.randomUUID().toString(), order.getOrderNo());
-                }
+                withOrderLock(order.getOrderNo(), () -> {
+                    int updated = orderShardMapper.updateOrderStatusIfCurrent(
+                            table,
+                            order.getOrderNo(),
+                            OrderStatus.CLOSED.name(),
+                            OrderStatus.WAIT_PAY.name()
+                    );
+                    if (updated > 0) {
+                        eventPublisher.publishOrderClosed(UUID.randomUUID().toString(), order.getOrderNo());
+                    }
+                    return null;
+                });
             }
         }
     }
@@ -572,6 +621,10 @@ public class OrderService {
             return BigDecimal.ZERO;
         }
         return new BigDecimal(String.valueOf(value));
+    }
+
+    private <T> T withOrderLock(String orderNo, java.util.function.Supplier<T> action) {
+        return orderDistributedLockService.withOrderLock(orderNo, action);
     }
 
     private record CouponApplyResult(boolean couponApplied, BigDecimal discountAmount, BigDecimal finalAmount) {
