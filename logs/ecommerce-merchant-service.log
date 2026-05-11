@@ -1,0 +1,2228 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.4)
+
+2026-05-04T17:31:02.682+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] org.example.merchant.Main                : Starting Main using Java 22.0.2 with PID 35944 (C:\Users\zeihai\Desktop\code\ecommerce-springcloud\ecommerce-merchant-service\target\ecommerce-merchant-service-1.0-SNAPSHOT.jar started by zeihai in C:\Users\zeihai\Desktop\code\ecommerce-springcloud\ecommerce-merchant-service\target)
+2026-05-04T17:31:02.688+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] org.example.merchant.Main                : No active profile set, falling back to 1 default profile: "default"
+2026-05-04T17:31:02.878+08:00  WARN 35944 --- [ecommerce-merchant-service] [           main] c.a.c.n.c.NacosConfigDataLoader          : [Nacos Config] config[dataId=ecommerce-merchant-service.yaml, group=ECOMMERCE_DEV] is empty
+2026-05-04T17:31:02.878+08:00  WARN 35944 --- [ecommerce-merchant-service] [           main] c.a.c.n.c.NacosConfigDataLoader          : [Nacos Config] config[dataId=ecommerce-common.yaml, group=ECOMMERCE_DEV] is empty
+2026-05-04T17:31:07.615+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-05-04T17:31:07.622+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-05-04T17:31:08.200+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 546 ms. Found 4 JPA repository interfaces.
+2026-05-04T17:31:08.258+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-05-04T17:31:08.261+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-05-04T17:31:08.301+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface org.example.merchant.repository.MerchantApplicationRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-04T17:31:08.301+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface org.example.merchant.repository.MerchantProductCommentRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-04T17:31:08.301+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface org.example.merchant.repository.MerchantProductRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-04T17:31:08.307+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface org.example.merchant.repository.MerchantStoreRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-04T17:31:08.308+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 15 ms. Found 0 Redis repository interfaces.
+2026-05-04T17:31:08.983+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=bb7345f5-689b-3ff4-afe9-468def4b85e4
+2026-05-04T17:31:11.464+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8084 (http)
+2026-05-04T17:31:11.539+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-05-04T17:31:11.541+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+2026-05-04T17:31:11.736+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-05-04T17:31:11.745+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 8852 ms
+2026-05-04T17:31:13.267+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-05-04T17:31:13.768+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@6369d01c
+2026-05-04T17:31:13.772+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-05-04T17:31:14.166+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-05-04T17:31:14.393+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-05-04T17:31:14.504+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-05-04T17:31:15.410+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-05-04T17:31:15.570+08:00  WARN 35944 --- [ecommerce-merchant-service] [           main] org.hibernate.orm.deprecation            : HHH90000025: MySQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-05-04T17:31:18.170+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-05-04T17:31:18.179+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-05-04T17:31:21.763+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+2026-05-04T17:31:22.848+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+2026-05-04T17:31:23.223+08:00  WARN 35944 --- [ecommerce-merchant-service] [           main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 8966e2d8-65e6-47eb-acbd-cebeeaad1258
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-05-04T17:31:23.287+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2026-05-04T17:31:25.018+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-05-04T17:31:26.506+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8084 (http) with context path '/'
+2026-05-04T17:31:27.527+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+2026-05-04T17:31:27.543+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] com.alibaba.nacos.client.naming          : initializer namespace from ans.namespace attribute : null
+2026-05-04T17:31:27.544+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] com.alibaba.nacos.client.naming          : initializer namespace from ALIBABA_ALIWARE_NAMESPACE attribute :null
+2026-05-04T17:31:27.544+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] com.alibaba.nacos.client.naming          : initializer namespace from namespace attribute :null
+2026-05-04T17:31:27.559+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] com.alibaba.nacos.client.naming          : FailoverDataSource type is class com.alibaba.nacos.client.naming.backups.datasource.DiskFailoverDataSource
+2026-05-04T17:31:27.569+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
+2026-05-04T17:31:27.569+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
+2026-05-04T17:31:27.578+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] com.alibaba.nacos.common.remote.client   : [RpcClientFactory] create a new rpc client of 52e36b7d-81a8-4676-ace3-dd5fa5d73254
+2026-05-04T17:31:27.584+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] com.alibaba.nacos.client.naming          : Create naming rpc client for uuid->52e36b7d-81a8-4676-ace3-dd5fa5d73254
+2026-05-04T17:31:27.584+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] com.alibaba.nacos.common.remote.client   : [52e36b7d-81a8-4676-ace3-dd5fa5d73254] RpcClient init, ServerListFactory = com.alibaba.nacos.client.naming.core.ServerListManager
+2026-05-04T17:31:27.584+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] com.alibaba.nacos.common.remote.client   : [52e36b7d-81a8-4676-ace3-dd5fa5d73254] Registry connection listener to current client:com.alibaba.nacos.client.naming.remote.gprc.redo.NamingGrpcRedoService
+2026-05-04T17:31:27.585+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] com.alibaba.nacos.common.remote.client   : [52e36b7d-81a8-4676-ace3-dd5fa5d73254] Register server push request handler:com.alibaba.nacos.client.naming.remote.gprc.NamingPushRequestHandler
+2026-05-04T17:31:27.585+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] com.alibaba.nacos.common.remote.client   : [52e36b7d-81a8-4676-ace3-dd5fa5d73254] Try to connect to server on start up, server: {serverIp = 'localhost', server main port = 8848}
+2026-05-04T17:31:27.585+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] c.a.n.c.remote.client.grpc.GrpcClient    : grpc client connection server:localhost ip,serverPort:9848,grpcTslConfig:{"sslProvider":"","enableTls":false,"mutualAuthEnable":false,"trustAll":false}
+2026-05-04T17:31:27.617+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] com.alibaba.nacos.common.remote.client   : [52e36b7d-81a8-4676-ace3-dd5fa5d73254] Success to connect to server [localhost:8848] on start up, connectionId = 1777887087597_172.17.0.1_35638
+2026-05-04T17:31:27.617+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] com.alibaba.nacos.common.remote.client   : [52e36b7d-81a8-4676-ace3-dd5fa5d73254] Register server push request handler:com.alibaba.nacos.common.remote.client.RpcClient$ConnectResetRequestHandler
+2026-05-04T17:31:27.617+08:00  INFO 35944 --- [ecommerce-merchant-service] [remote.worker.0] com.alibaba.nacos.common.remote.client   : [52e36b7d-81a8-4676-ace3-dd5fa5d73254] Notify connected event to listeners.
+2026-05-04T17:31:27.617+08:00  INFO 35944 --- [ecommerce-merchant-service] [remote.worker.0] com.alibaba.nacos.client.naming          : Grpc connection connect
+2026-05-04T17:31:27.619+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] com.alibaba.nacos.common.remote.client   : [52e36b7d-81a8-4676-ace3-dd5fa5d73254] Register server push request handler:com.alibaba.nacos.common.remote.client.RpcClient$$Lambda/0x000002580135bcb8
+2026-05-04T17:31:27.621+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] com.alibaba.nacos.client.naming          : [REGISTER-SERVICE] public registering service ecommerce-merchant-service with instance Instance{instanceId='null', ip='192.168.30.1', port=8084, weight=1.0, healthy=true, enabled=true, ephemeral=true, clusterName='DEFAULT', serviceName='null', metadata={IPv6=null, preserved.register.source=SPRING_CLOUD}}
+2026-05-04T17:31:27.653+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] c.a.c.n.registry.NacosServiceRegistry    : nacos registry, DEFAULT_GROUP ecommerce-merchant-service 192.168.30.1:8084 register finished
+2026-05-04T17:31:27.685+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] org.example.merchant.Main                : Started Main in 31.496 seconds (process running for 32.67)
+2026-05-04T17:31:27.901+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] c.a.nacos.client.config.impl.CacheData   : config listener notify warn timeout millis use default 60000 millis 
+2026-05-04T17:31:27.902+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] c.a.nacos.client.config.impl.CacheData   : nacos.cache.data.init.snapshot = true 
+2026-05-04T17:31:27.903+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] c.a.n.client.config.impl.ClientWorker    : [fixed-localhost_8848] [subscribe] ecommerce-common.yaml+ECOMMERCE_DEV
+2026-05-04T17:31:27.927+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] c.a.nacos.client.config.impl.CacheData   : [fixed-localhost_8848] [add-listener] ok, tenant=, dataId=ecommerce-common.yaml, group=ECOMMERCE_DEV, cnt=1
+2026-05-04T17:31:27.927+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=ecommerce-common.yaml, group=ECOMMERCE_DEV
+2026-05-04T17:31:27.928+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] c.a.n.client.config.impl.ClientWorker    : [fixed-localhost_8848] [subscribe] ecommerce-merchant-service.yaml+ECOMMERCE_DEV
+2026-05-04T17:31:27.928+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] c.a.nacos.client.config.impl.CacheData   : [fixed-localhost_8848] [add-listener] ok, tenant=, dataId=ecommerce-merchant-service.yaml, group=ECOMMERCE_DEV, cnt=1
+2026-05-04T17:31:27.928+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=ecommerce-merchant-service.yaml, group=ECOMMERCE_DEV
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0
+2026-05-04T17:31:28.233+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] com.alibaba.nacos.client.naming          : [SUBSCRIBE-SERVICE] service:ecommerce-inventory-service, group:DEFAULT_GROUP, clusters: 
+2026-05-04T17:31:28.233+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] com.alibaba.nacos.client.naming          : [GRPC-SUBSCRIBE] service:ecommerce-inventory-service, group:DEFAULT_GROUP, cluster: 
+2026-05-04T17:31:28.278+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] com.alibaba.nacos.client.naming          : init new ips(1) service: DEFAULT_GROUP@@ecommerce-inventory-service -> [{"instanceId":"192.168.30.1#8086#DEFAULT#DEFAULT_GROUP@@ecommerce-inventory-service","ip":"192.168.30.1","port":8086,"weight":1.0,"healthy":true,"enabled":true,"ephemeral":true,"clusterName":"DEFAULT","serviceName":"DEFAULT_GROUP@@ecommerce-inventory-service","metadata":{"preserved.register.source":"SPRING_CLOUD"},"ipDeleteTimeout":30000,"instanceHeartBeatInterval":5000,"instanceHeartBeatTimeOut":15000}]
+2026-05-04T17:31:28.282+08:00  INFO 35944 --- [ecommerce-merchant-service] [           main] com.alibaba.nacos.client.naming          : current ips:(1) service: DEFAULT_GROUP@@ecommerce-inventory-service -> [{"instanceId":"192.168.30.1#8086#DEFAULT#DEFAULT_GROUP@@ecommerce-inventory-service","ip":"192.168.30.1","port":8086,"weight":1.0,"healthy":true,"enabled":true,"ephemeral":true,"clusterName":"DEFAULT","serviceName":"DEFAULT_GROUP@@ecommerce-inventory-service","metadata":{"preserved.register.source":"SPRING_CLOUD"},"ipDeleteTimeout":30000,"instanceHeartBeatInterval":5000,"instanceHeartBeatTimeOut":15000}]
+2026-05-04T17:31:28.836+08:00  INFO 35944 --- [ecommerce-merchant-service] [tor-localhost-9] com.alibaba.nacos.common.remote.client   : [52e36b7d-81a8-4676-ace3-dd5fa5d73254] Receive server push request, request = NotifySubscriberRequest, requestId = 1
+2026-05-04T17:31:28.837+08:00  INFO 35944 --- [ecommerce-merchant-service] [tor-localhost-9] com.alibaba.nacos.common.remote.client   : [52e36b7d-81a8-4676-ace3-dd5fa5d73254] Ack server push request, request = NotifySubscriberRequest, requestId = 1
+2026-05-04T17:31:29.405+08:00  INFO 35944 --- [ecommerce-merchant-service] [nio-8084-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-05-04T17:31:29.405+08:00  INFO 35944 --- [ecommerce-merchant-service] [nio-8084-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-05-04T17:31:29.407+08:00  INFO 35944 --- [ecommerce-merchant-service] [nio-8084-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ma1_0.id,
+        ma1_0.applicant_user_id,
+        ma1_0.applicant_username,
+        ma1_0.business_scope,
+        ma1_0.contact_phone,
+        ma1_0.created_at,
+        ma1_0.review_comment,
+        ma1_0.reviewed_at,
+        ma1_0.reviewer_user_id,
+        ma1_0.shop_name,
+        ma1_0.status,
+        ma1_0.updated_at 
+    from
+        merchant_application ma1_0 
+    where
+        ma1_0.applicant_user_id=? 
+    order by
+        ma1_0.created_at desc
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.status=? 
+    order by
+        mp1_0.sales_count desc,
+        mp1_0.created_at desc 
+    limit
+        ?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.status=? 
+    order by
+        ms1_0.created_at desc
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.store_id=? 
+        and mp1_0.status=? 
+    order by
+        mp1_0.sales_count desc,
+        mp1_0.created_at desc
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.store_id=? 
+        and mp1_0.status=? 
+    order by
+        mp1_0.sales_count desc,
+        mp1_0.created_at desc
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.status=? 
+    order by
+        mp1_0.sales_count desc,
+        mp1_0.created_at desc
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.status=? 
+    order by
+        ms1_0.created_at desc
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.store_id=? 
+        and mp1_0.status=? 
+    order by
+        mp1_0.sales_count desc,
+        mp1_0.created_at desc
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.store_id=? 
+        and mp1_0.status=? 
+    order by
+        mp1_0.sales_count desc,
+        mp1_0.created_at desc
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.status=? 
+    order by
+        ms1_0.created_at desc
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.store_id=? 
+        and mp1_0.status=? 
+    order by
+        mp1_0.sales_count desc,
+        mp1_0.created_at desc
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.store_id=? 
+        and mp1_0.status=? 
+    order by
+        mp1_0.sales_count desc,
+        mp1_0.created_at desc
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.store_id=? 
+        and mp1_0.status=? 
+    order by
+        mp1_0.sales_count desc,
+        mp1_0.created_at desc
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.store_id=? 
+    order by
+        mp1_0.created_at desc
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        mpc1_0.id,
+        mpc1_0.content,
+        mpc1_0.created_at,
+        mpc1_0.image_urls,
+        mpc1_0.nickname,
+        mpc1_0.product_id,
+        mpc1_0.updated_at,
+        mpc1_0.user_id,
+        mpc1_0.username 
+    from
+        merchant_product_comment mpc1_0 
+    where
+        mpc1_0.product_id=? 
+    order by
+        mpc1_0.created_at desc
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.status=? 
+    order by
+        ms1_0.created_at desc
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.store_id=? 
+        and mp1_0.status=? 
+    order by
+        mp1_0.sales_count desc,
+        mp1_0.created_at desc
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.store_id=? 
+        and mp1_0.status=? 
+    order by
+        mp1_0.sales_count desc,
+        mp1_0.created_at desc
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.status=? 
+    order by
+        mp1_0.sales_count desc,
+        mp1_0.created_at desc 
+    limit
+        ?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.id=? 
+        and ms1_0.status=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.status=? 
+    order by
+        ms1_0.created_at desc
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.store_id=? 
+        and mp1_0.status=? 
+    order by
+        mp1_0.sales_count desc,
+        mp1_0.created_at desc
+Hibernate: 
+    select
+        mp1_0.id,
+        mp1_0.category,
+        mp1_0.created_at,
+        mp1_0.description,
+        mp1_0.image_url,
+        mp1_0.off_shelf_reason,
+        mp1_0.price,
+        mp1_0.sales_count,
+        mp1_0.status,
+        mp1_0.stock,
+        mp1_0.store_id,
+        mp1_0.tags,
+        mp1_0.title,
+        mp1_0.updated_at 
+    from
+        merchant_product mp1_0 
+    where
+        mp1_0.store_id=? 
+        and mp1_0.status=? 
+    order by
+        mp1_0.sales_count desc,
+        mp1_0.created_at desc
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
+Hibernate: 
+    select
+        ms1_0.id,
+        ms1_0.created_at,
+        ms1_0.main_category,
+        ms1_0.owner_user_id,
+        ms1_0.status,
+        ms1_0.store_image_url,
+        ms1_0.store_intro,
+        ms1_0.store_name,
+        ms1_0.tags,
+        ms1_0.updated_at 
+    from
+        merchant_store ms1_0 
+    where
+        ms1_0.owner_user_id=?
