@@ -44,6 +44,16 @@ public class OrderClient {
     }
 
     @SuppressWarnings("unchecked")
+    public Map<String, Object> requestAfterSale(String orderNo) {
+        ResponseEntity<Map<String, Object>> response = restTemplate.postForEntity(
+                baseUrl + "/api/order/orders/" + orderNo + "/after-sale",
+                null,
+                (Class<Map<String, Object>>) (Class<?>) Map.class
+        );
+        return response.getBody();
+    }
+
+    @SuppressWarnings("unchecked")
     private Map<String, Object> postForMap(String primaryPath, String fallbackPath) {
         try {
             ResponseEntity<Map<String, Object>> response = restTemplate.postForEntity(

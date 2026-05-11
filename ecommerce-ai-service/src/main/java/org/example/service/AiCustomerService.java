@@ -38,10 +38,12 @@ public class AiCustomerService {
                              AiProperties aiProperties,
                              RagService ragService,
                              ConfirmationService confirmationService,
+                             ReturnReasonSummarizer returnReasonSummarizer,
+                             ReplyPolisherService replyPolisherService,
                              ChatServiceClient chatServiceClient,
                              OrderServiceClient orderServiceClient,
                              ActionRegistry actionRegistry) {
-        this(chatClient, aiProperties, ragService, confirmationService, chatServiceClient, orderServiceClient, actionRegistry, null, null, null, null);
+        this(chatClient, aiProperties, ragService, confirmationService, returnReasonSummarizer, replyPolisherService, chatServiceClient, orderServiceClient, actionRegistry, null, null, null, null);
     }
 
     @Autowired
@@ -49,6 +51,8 @@ public class AiCustomerService {
                              AiProperties aiProperties,
                              RagService ragService,
                              ConfirmationService confirmationService,
+                             ReturnReasonSummarizer returnReasonSummarizer,
+                             ReplyPolisherService replyPolisherService,
                              ChatServiceClient chatServiceClient,
                              OrderServiceClient orderServiceClient,
                              ActionRegistry actionRegistry,
@@ -57,9 +61,9 @@ public class AiCustomerService {
                              ProductImageCompareService productImageCompareService,
                              ProductImageIndexSyncService productImageIndexSyncService) {
         this.agentRouter = new AgentRouter(List.of(
-                new AfterSaleAgent(aiProperties, confirmationService, chatServiceClient, actionRegistry),
-                new ImageSearchAgent(aiProperties, visionRecognitionService, merchantCatalogClient, productImageCompareService, productImageIndexSyncService),
-                new GeneralAnswerAgent(chatClient, aiProperties, ragService, orderServiceClient)
+                new AfterSaleAgent(aiProperties, confirmationService, chatServiceClient, actionRegistry, returnReasonSummarizer, replyPolisherService),
+                new ImageSearchAgent(aiProperties, visionRecognitionService, merchantCatalogClient, productImageCompareService, productImageIndexSyncService, replyPolisherService),
+                new GeneralAnswerAgent(chatClient, aiProperties, ragService, orderServiceClient, replyPolisherService)
         ));
         this.confirmationService = confirmationService;
     }

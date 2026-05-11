@@ -30,6 +30,7 @@ const selectedImageUrl = ref('');
 const selectedImageName = ref('');
 const imageUploading = ref(false);
 const fileInputRef = ref(null);
+const THINKING_VISIBLE_MS = 2400;
 
 const ORDER_STATUS_TEXT = {
   CREATED: '待支付(确认中)',
@@ -222,6 +223,8 @@ const buildConversationHistory = (latestUserMessage = '') => {
 };
 
 const appendMessage = (role, content, options = {}) => {
+  // options.allowThinking: whether this assistant message is allowed to display thinking content
+  const allowThinking = !!options.allowThinking;
   const { thinking, answer } = role === 'assistant'
     ? (options.thinking !== undefined
       ? { thinking: options.thinking || '', answer: content }
@@ -231,9 +234,12 @@ const appendMessage = (role, content, options = {}) => {
     id: `${Date.now()}-${Math.random()}`,
     role,
     content: answer,
-    thinking,
-    showThinking: !!options.showThinking,
+    thinking: allowThinking ? thinking : '',
+    // showThinking only if allowed and requested
+    showThinking: allowThinking && !!options.showThinking,
+    showAnswer: options.showAnswer !== undefined ? !!options.showAnswer : (role !== 'assistant' || !allowThinking || !thinking),
     pending: !!options.pending,
+    allowThinking,
     userImageUrl: options.userImageUrl || '',
     recommendProducts: normalizeRecommendProducts(options.recommendProducts),
     at: new Date().toLocaleTimeString()
@@ -244,9 +250,11 @@ const appendMessage = (role, content, options = {}) => {
 };
 
 const startPendingThinking = () => {
-  const placeholder = appendMessage('assistant', '处理中...', {
+  const placeholder = appendMessage('assistant', '', {
     showThinking: true,
-    pending: true
+    showAnswer: false,
+    pending: true,
+    allowThinking: true
   });
   const base = '正在思考';
   let dots = 0;
@@ -269,7 +277,14 @@ const finishPendingThinking = (messageId, result) => {
   const target = messages.value.find((item) => item.id === messageId);
   if (!target) {
     if (result?.reply) {
-      appendMessage('assistant', result.reply, { thinking: result?.thinking, recommendProducts: result?.recommendProducts });
+      // Non-main-flow assistant message: do NOT display thinking
+      appendMessage('assistant', result.reply, {
+        thinking: result?.thinking,
+        showThinking: false,
+        showAnswer: true,
+        allowThinking: false,
+        recommendProducts: result?.recommendProducts
+      });
     }
     return;
   }
@@ -279,16 +294,18 @@ const finishPendingThinking = (messageId, result) => {
   const thinking = structuredThinking || parsed.thinking;
   const answer = structuredReply || parsed.answer;
   target.pending = false;
+  target.thinking = target.allowThinking ? thinking : '';
   target.content = answer;
-  target.thinking = thinking;
-  target.showThinking = !!thinking;
+  target.showThinking = target.allowThinking && !!thinking;
+  target.showAnswer = !target.showThinking;
   scrollMessagesToBottom();
   if (thinking) {
     window.setTimeout(() => {
       if (!target.pending) {
         target.showThinking = false;
+        target.showAnswer = true;
       }
-    }, 2400);
+    }, THINKING_VISIBLE_MS);
   }
 };
 
@@ -357,8 +374,9 @@ const attachAssistantPayload = (messageId, result) => {
     return;
   }
   if (result?.thinking !== undefined) {
-    target.thinking = result.thinking || '';
-    target.showThinking = !!result.thinking;
+    target.thinking = target.allowThinking ? (result.thinking || '') : '';
+    target.showThinking = target.allowThinking && !!result.thinking;
+    target.showAnswer = !target.showThinking;
   }
   target.recommendProducts = normalizeRecommendProducts(result?.recommendProducts);
   scrollMessagesToBottom();
@@ -424,7 +442,22 @@ const confirmPendingAction = async () => {
       history: buildConversationHistory('确认')
     });
     if (result?.reply) {
-      appendMessage('assistant', result.reply, { thinking: result?.thinking, recommendProducts: result?.recommendProducts });
+      const message = appendMessage('assistant', result.reply, {
+        thinking: result?.thinking,
+        showThinking: !!result?.thinking,
+        showAnswer: !result?.thinking,
+        recommendProducts: result?.recommendProducts,
+        allowThinking: false
+      });
+      if (result?.thinking) {
+        window.setTimeout(() => {
+          const current = messages.value.find((item) => item.id === message.id);
+          if (current) {
+            current.showThinking = false;
+            current.showAnswer = true;
+          }
+        }, THINKING_VISIBLE_MS);
+      }
     }
     pendingToken.value = '';
   } catch (error) {
@@ -450,7 +483,22 @@ const cancelPendingAction = async () => {
       history: buildConversationHistory('取消')
     });
     if (result?.reply) {
-      appendMessage('assistant', result.reply, { thinking: result?.thinking, recommendProducts: result?.recommendProducts });
+      const message = appendMessage('assistant', result.reply, {
+        thinking: result?.thinking,
+        showThinking: !!result?.thinking,
+        showAnswer: !result?.thinking,
+        recommendProducts: result?.recommendProducts,
+        allowThinking: false
+      });
+      if (result?.thinking) {
+        window.setTimeout(() => {
+          const current = messages.value.find((item) => item.id === message.id);
+          if (current) {
+            current.showThinking = false;
+            current.showAnswer = true;
+          }
+        }, THINKING_VISIBLE_MS);
+      }
     }
     pendingToken.value = '';
   } catch (error) {
@@ -548,7 +596,7 @@ watch(orderNo, (next) => {
       <section ref="messagesContainer" class="ai-drawer-messages">
         <article v-for="message in messages" :key="message.id" class="ai-message" :class="[`is-${message.role}`, { pending: message.pending }]">
           <div
-            v-if="message.role === 'assistant' && message.thinking"
+            v-if="message.role === 'assistant' && message.allowThinking && (message.pending || message.thinking)"
             class="ai-thinking-block"
           >
             <button class="ai-thinking-toggle" @click="toggleThinking(message)">
@@ -557,7 +605,7 @@ watch(orderNo, (next) => {
             </button>
             <pre v-if="message.showThinking" class="ai-thinking-content">{{ message.thinking }}</pre>
           </div>
-          <pre class="ai-answer-content">{{ message.content }}</pre>
+          <pre v-if="message.showAnswer || message.role !== 'assistant'" class="ai-answer-content">{{ message.content }}</pre>
           <img v-if="message.userImageUrl" :src="message.userImageUrl" alt="uploaded" class="ai-message-image" />
           <div v-if="message.role === 'assistant' && message.recommendProducts?.length" class="ai-recommend-list">
             <a v-for="item in message.recommendProducts" :key="item.id" :href="item.link" class="ai-recommend-card">

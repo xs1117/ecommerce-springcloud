@@ -21,6 +21,15 @@ public class ConfirmationService {
     }
 
     public PendingAction create(Long userId, String orderNo, String actionType, String remark) {
+        return create(userId, orderNo, actionType, remark, PendingAction.STAGE_CONFIRMATION, null);
+    }
+
+    public PendingAction create(Long userId,
+                                String orderNo,
+                                String actionType,
+                                String remark,
+                                String stage,
+                                String reasonSummary) {
         Instant now = Instant.now();
         String token = UUID.randomUUID().toString();
         PendingAction pendingAction = new PendingAction(
@@ -29,6 +38,8 @@ public class ConfirmationService {
                 orderNo,
                 actionType,
                 remark,
+                stage,
+                reasonSummary,
                 now.plusSeconds(Math.max(60, aiProperties.getConfirmationTtlSeconds()))
         );
         byToken.put(token, pendingAction);

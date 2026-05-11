@@ -21,8 +21,23 @@ mybatis:
 app:
   mq:
     enabled: true
+  redisson:
+    mode: cluster
+    cluster-nodes:
+      - redis://localhost:7000
+      - redis://localhost:7001
+      - redis://localhost:7002
+      - redis://localhost:7003
+      - redis://localhost:7004
+      - redis://localhost:7005
+    single-server-address: redis://localhost:6379
+    timeout: 3s
+    connect-timeout: 3s
+    lock-wait-time: 2s
+    lock-lease-time: 10s
   order:
     pay-timeout-minutes: 10
+    timeout-scan-enabled: false
   integration:
     inventory:
       service-id: ecommerce-inventory-service

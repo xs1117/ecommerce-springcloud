@@ -334,13 +334,39 @@ public class ChatConversationService {
             }
         }
 
+        // If buyer applies for return/exchange, also notify order service to mark order status as AFTER_SALE
+        if (ACTION_APPLY_RETURN.equals(actionType) || ACTION_APPLY_EXCHANGE.equals(actionType)) {
+            if (!StringUtils.hasText(conversation.getOrderNo())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "售后会话缺少订单号");
+            }
+            String normalizedOrderNo = conversation.getOrderNo().trim();
+            if (!StringUtils.hasText(normalizedOrderNo)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "售后会话缺少订单号");
+            }
+            try {
+                Map<String, Object> result = orderClient.requestAfterSale(normalizedOrderNo);
+                if (result == null || !Boolean.TRUE.equals(result.get("ok"))) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "订单服务未确认售后申请");
+                }
+            } catch (HttpClientErrorException.NotFound ex) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "订单服务未发布申请售后接口，请重启订单服务");
+            } catch (ResponseStatusException ex) {
+                throw ex;
+            } catch (Exception ex) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "同步订单售后状态失败，请稍后重试");
+            }
+        }
+
         conversation.setAfterSaleStatus(nextStatus);
-        String messageText = buildActionMessage(actionType, resolveNickname(user), request.remark());
+        String messageText = buildActionMessage(actionType, resolveNickname(user), request.remark(), request.reasonSummary());
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("actionType", actionType);
         payload.put("afterSaleStatus", nextStatus);
         if (StringUtils.hasText(request.remark())) {
             payload.put("remark", request.remark().trim());
+        }
+        if (StringUtils.hasText(request.reasonSummary())) {
+            payload.put("reasonSummary", request.reasonSummary().trim());
         }
         sendSystemMessage(conversation, user, MessageType.AFTER_SALE_ACTION, messageText, payload);
         return toConversationView(conversationRepository.save(conversation), user);
@@ -543,7 +569,7 @@ public class ChatConversationService {
         return nextStatus;
     }
 
-    private String buildActionMessage(String actionType, String nickname, String remark) {
+    private String buildActionMessage(String actionType, String nickname, String remark, String reasonSummary) {
         String base = switch (actionType) {
             case ACTION_APPLY_RETURN -> nickname + "申请了退货";
             case ACTION_APPLY_EXCHANGE -> nickname + "申请了换货";
@@ -555,6 +581,9 @@ public class ChatConversationService {
             case ACTION_ADMIN_FORCE_REFUND -> nickname + "强制退款完成";
             default -> nickname + "执行了售后操作";
         };
+        if (StringUtils.hasText(reasonSummary)) {
+            base = base + "（退货原因：" + reasonSummary.trim() + "）";
+        }
         if (!StringUtils.hasText(remark)) {
             return base;
         }
@@ -822,6 +851,6 @@ public class ChatConversationService {
     public record SendMessageRequest(String clientMsgId, String messageType, String content, String payloadJson) {
     }
 
-    public record AfterSaleActionRequest(String actionType, String remark) {
+    public record AfterSaleActionRequest(String actionType, String remark, String reasonSummary) {
     }
 }
