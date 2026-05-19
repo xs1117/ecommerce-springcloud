@@ -1,9 +1,9 @@
 package org.example.agent;
 
 import org.example.security.AuthenticatedUser;
-import org.example.service.ChatTurn;
-import org.example.service.AiChatCommand;
-import org.example.service.PendingAction;
+import org.example.service.dto.AiChatCommand;
+import org.example.service.dto.ChatTurn;
+import org.example.service.dto.PendingAction;
 import org.springframework.util.StringUtils;
 
 import java.util.List;

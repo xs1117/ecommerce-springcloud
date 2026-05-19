@@ -150,30 +150,67 @@ public class ProductImageCompareService {
     }
 
     private Long computeDHash(String imageUrl) {
-        try {
-            String absoluteUrl = toAbsoluteUrl(imageUrl);
-            BufferedImage source = ImageIO.read(URI.create(absoluteUrl).toURL());
-            if (source == null) {
-                return null;
-            }
-            BufferedImage normalized = resizeToGray(source);
-            long hash = 0L;
-            int bitIndex = 0;
-            for (int y = 0; y < HASH_SIZE - 1; y++) {
-                for (int x = 0; x < HASH_SIZE - 1; x++) {
-                    int left = normalized.getRaster().getSample(x, y, 0);
-                    int right = normalized.getRaster().getSample(x + 1, y, 0);
-                    if (left > right) {
-                        hash |= (1L << bitIndex);
-                    }
-                    bitIndex++;
-                }
-            }
-            return hash;
-        } catch (Exception ex) {
-            log.debug("Compute dHash failed. imageUrl={}, error={}", imageUrl, ex.getMessage());
+        String raw = asText(imageUrl);
+        if (!StringUtils.hasText(raw)) {
             return null;
         }
+        List<String> candidates = buildCandidateUrls(raw);
+        for (String candidate : candidates) {
+            try {
+                BufferedImage source = ImageIO.read(URI.create(candidate).toURL());
+                if (source == null) {
+                    continue;
+                }
+                BufferedImage normalized = resizeToGray(source);
+                long hash = 0L;
+                int bitIndex = 0;
+                for (int y = 0; y < HASH_SIZE - 1; y++) {
+                    for (int x = 0; x < HASH_SIZE - 1; x++) {
+                        int left = normalized.getRaster().getSample(x, y, 0);
+                        int right = normalized.getRaster().getSample(x + 1, y, 0);
+                        if (left > right) {
+                            hash |= (1L << bitIndex);
+                        }
+                        bitIndex++;
+                    }
+                }
+                return hash;
+            } catch (Exception ex) {
+                // try next candidate
+            }
+        }
+        log.debug("Compute dHash failed. imageUrl={}", imageUrl);
+        return null;
+    }
+
+    private List<String> buildCandidateUrls(String value) {
+        List<String> candidates = new ArrayList<>();
+        String url = asText(value);
+        if (!StringUtils.hasText(url)) {
+            return candidates;
+        }
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+            candidates.add(url);
+            return candidates;
+        }
+        String imageBase = asText(aiProperties.getImageCompare().getImageBaseUrl());
+        String chatBase = asText(aiProperties.getChatServiceBaseUrl());
+        String path = url.startsWith("/") ? url : "/" + url;
+        if (StringUtils.hasText(imageBase)) {
+            candidates.add(trimTrailingSlash(imageBase) + path);
+        }
+        if (StringUtils.hasText(chatBase) && !chatBase.equals(imageBase)) {
+            candidates.add(trimTrailingSlash(chatBase) + path);
+        }
+        return candidates;
+    }
+
+    private String trimTrailingSlash(String value) {
+        String trimmed = asText(value);
+        while (trimmed.endsWith("/")) {
+            trimmed = trimmed.substring(0, trimmed.length() - 1);
+        }
+        return trimmed;
     }
 
     private BufferedImage resizeToGray(BufferedImage source) {

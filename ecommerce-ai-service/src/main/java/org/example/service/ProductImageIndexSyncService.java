@@ -20,15 +20,18 @@ public class ProductImageIndexSyncService {
     private final AiProperties aiProperties;
     private final MerchantCatalogClient merchantCatalogClient;
     private final ProductImageCompareService productImageCompareService;
+    private final ProductImageSemanticSearchService productImageSemanticSearchService;
 
     private volatile LocalDateTime lastSyncTime;
 
     public ProductImageIndexSyncService(AiProperties aiProperties,
                                         MerchantCatalogClient merchantCatalogClient,
-                                        ProductImageCompareService productImageCompareService) {
+                                        ProductImageCompareService productImageCompareService,
+                                        ProductImageSemanticSearchService productImageSemanticSearchService) {
         this.aiProperties = aiProperties;
         this.merchantCatalogClient = merchantCatalogClient;
         this.productImageCompareService = productImageCompareService;
+        this.productImageSemanticSearchService = productImageSemanticSearchService;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -58,6 +61,9 @@ public class ProductImageIndexSyncService {
         long cursor = 0L;
         int total = 0;
         productImageCompareService.resetIndex();
+        if (productImageSemanticSearchService != null && productImageSemanticSearchService.isEnabled()) {
+            productImageSemanticSearchService.resetIndex();
+        }
         while (true) {
             Map<String, Object> page = merchantCatalogClient.fetchImageIndexPage(null, cursor, settings.getSyncPageSize());
             List<Map<String, Object>> items = readItems(page);
@@ -65,6 +71,9 @@ public class ProductImageIndexSyncService {
                 break;
             }
             productImageCompareService.upsertIndexBatch(items);
+            if (productImageSemanticSearchService != null && productImageSemanticSearchService.isEnabled()) {
+                productImageSemanticSearchService.upsertIndexBatch(items);
+            }
             total += items.size();
             long nextCursor = asLong(page.get("nextCursorId"), cursor);
             boolean hasMore = asBoolean(page.get("hasMore"));
@@ -88,6 +97,9 @@ public class ProductImageIndexSyncService {
                 break;
             }
             productImageCompareService.upsertIndexBatch(items);
+            if (productImageSemanticSearchService != null && productImageSemanticSearchService.isEnabled()) {
+                productImageSemanticSearchService.upsertIndexBatch(items);
+            }
             total += items.size();
             long nextCursor = asLong(page.get("nextCursorId"), cursor);
             boolean hasMore = asBoolean(page.get("hasMore"));

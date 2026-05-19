@@ -1,0 +1,322 @@
+package org.example.service;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.config.AiProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+@Component
+public class ProductImageSemanticQdrantStore {
+
+    private static final Logger log = LoggerFactory.getLogger(ProductImageSemanticQdrantStore.class);
+
+    private final AiProperties aiProperties;
+    private final ObjectMapper objectMapper;
+    private final HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10))
+            .build();
+    private final AtomicBoolean collectionReady = new AtomicBoolean(false);
+
+    public ProductImageSemanticQdrantStore(AiProperties aiProperties, ObjectMapper objectMapper) {
+        this.aiProperties = aiProperties;
+        this.objectMapper = objectMapper;
+    }
+
+    public boolean isAvailable() {
+        return aiProperties.getSemanticImage().isEnabled()
+                && StringUtils.hasText(resolveQdrantUrl());
+    }
+
+    public void ensureCollection() {
+        if (!isAvailable() || collectionReady.get()) {
+            return;
+        }
+        synchronized (collectionReady) {
+            if (collectionReady.get()) {
+                return;
+            }
+            try {
+                int desiredSize = vectorSize();
+                Integer existingSize = fetchCollectionVectorSize();
+                if (existingSize != null && existingSize != desiredSize) {
+                    log.warn("Semantic image collection vector size mismatch. expected={}, actual={}, recreating.", desiredSize, existingSize);
+                    deleteCollection();
+                    existingSize = null;
+                }
+                if (existingSize == null) {
+                    createCollection(desiredSize);
+                }
+                collectionReady.set(true);
+            } catch (Exception ex) {
+                throw new IllegalStateException("Unable to initialize semantic image Qdrant collection", ex);
+            }
+        }
+    }
+
+    public void clearCollection() {
+        if (!isAvailable()) {
+            return;
+        }
+        try {
+            deleteCollection();
+            ensureCollection();
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to clear semantic image index", ex);
+        }
+    }
+
+    private void createCollection(int desiredSize) throws Exception {
+        String url = joinUrl(resolveQdrantUrl(), "/collections/" + collectionName());
+        Map<String, Object> body = Map.of("vectors", Map.of("size", desiredSize, "distance", "Cosine"));
+        HttpResponse<String> response = send(requestBuilder(url)
+                .PUT(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(body)))
+                .build());
+        if ((response.statusCode() >= 200 && response.statusCode() < 300) || response.statusCode() == 409) {
+            return;
+        }
+        throw new IllegalStateException("create semantic image collection failed: " + response.statusCode() + " " + response.body());
+    }
+
+    private void deleteCollection() throws Exception {
+        String url = joinUrl(resolveQdrantUrl(), "/collections/" + collectionName());
+        HttpResponse<String> response = send(requestBuilder(url)
+                .DELETE()
+                .build());
+        if ((response.statusCode() >= 200 && response.statusCode() < 300) || response.statusCode() == 404) {
+            collectionReady.set(false);
+            return;
+        }
+        throw new IllegalStateException("clear semantic image index failed: " + response.statusCode() + " " + response.body());
+    }
+
+    private Integer fetchCollectionVectorSize() {
+        if (!isAvailable()) {
+            return null;
+        }
+        try {
+            String url = joinUrl(resolveQdrantUrl(), "/collections/" + collectionName());
+            HttpResponse<String> response = send(requestBuilder(url).GET().build());
+            if (response.statusCode() == 404) {
+                return null;
+            }
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                return null;
+            }
+            JsonNode root = objectMapper.readTree(response.body());
+            JsonNode vectors = root.path("result").path("config").path("params").path("vectors");
+            if (vectors.isObject()) {
+                JsonNode sizeNode = vectors.get("size");
+                if (sizeNode != null && sizeNode.isNumber()) {
+                    return sizeNode.asInt();
+                }
+                Iterator<Map.Entry<String, JsonNode>> fields = vectors.fields();
+                while (fields.hasNext()) {
+                    JsonNode node = fields.next().getValue();
+                    JsonNode fieldSize = node.get("size");
+                    if (fieldSize != null && fieldSize.isNumber()) {
+                        return fieldSize.asInt();
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            return null;
+        }
+        return null;
+    }
+
+    public long count() {
+        if (!isAvailable()) {
+            return 0L;
+        }
+        ensureCollection();
+        try {
+            String url = joinUrl(resolveQdrantUrl(), "/collections/" + collectionName() + "/points/count");
+            Map<String, Object> body = Map.of("exact", true);
+            HttpResponse<String> response = send(requestBuilder(url)
+                    .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(body)))
+                    .build());
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                return 0L;
+            }
+            JsonNode root = objectMapper.readTree(response.body());
+            return root.path("result").path("count").asLong(0L);
+        } catch (Exception ex) {
+            return 0L;
+        }
+    }
+
+    public void upsert(List<Point> points) {
+        if (!isAvailable() || points == null || points.isEmpty()) {
+            return;
+        }
+        ensureCollection();
+        try {
+            List<Map<String, Object>> records = new ArrayList<>();
+            for (Point point : points) {
+                Map<String, Object> item = new LinkedHashMap<>();
+                item.put("id", toPointId(point.productId()));
+                item.put("vector", point.vector());
+                item.put("payload", point.payload());
+                records.add(item);
+            }
+            String url = joinUrl(resolveQdrantUrl(), "/collections/" + collectionName() + "/points?wait=true");
+            Map<String, Object> body = Map.of("points", records);
+            HttpResponse<String> response = send(requestBuilder(url)
+                    .PUT(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(body)))
+                    .build());
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                throw new IllegalStateException("upsert semantic image index failed: " + response.statusCode() + " " + response.body());
+            }
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to upsert semantic image index", ex);
+        }
+    }
+
+    public void deleteByProductIds(List<String> productIds) {
+        if (!isAvailable() || productIds == null || productIds.isEmpty()) {
+            return;
+        }
+        ensureCollection();
+        try {
+            List<Object> ids = productIds.stream().filter(StringUtils::hasText).map(this::toPointId).toList();
+            if (ids.isEmpty()) {
+                return;
+            }
+            String url = joinUrl(resolveQdrantUrl(), "/collections/" + collectionName() + "/points/delete?wait=true");
+            Map<String, Object> body = Map.of("points", ids);
+            HttpResponse<String> response = send(requestBuilder(url)
+                    .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(body)))
+                    .build());
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                throw new IllegalStateException("delete semantic image index points failed: " + response.statusCode() + " " + response.body());
+            }
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to delete semantic image index points", ex);
+        }
+    }
+
+    public List<SearchHit> search(float[] queryVector, int limit) {
+        if (!isAvailable() || queryVector == null || queryVector.length != vectorSize()) {
+            return List.of();
+        }
+        ensureCollection();
+        try {
+            String url = joinUrl(resolveQdrantUrl(), "/collections/" + collectionName() + "/points/search");
+            Map<String, Object> body = new LinkedHashMap<>();
+            body.put("vector", queryVector);
+            body.put("limit", Math.max(1, limit));
+            body.put("with_payload", true);
+            body.put("with_vector", false);
+            HttpResponse<String> response = send(requestBuilder(url)
+                    .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(body)))
+                    .build());
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                return List.of();
+            }
+            JsonNode root = objectMapper.readTree(response.body());
+            JsonNode result = root.path("result");
+            List<SearchHit> hits = new ArrayList<>();
+            if (result.isArray()) {
+                for (JsonNode item : result) {
+                    JsonNode payload = item.path("payload");
+                    Map<String, Object> map = objectMapper.convertValue(payload, new TypeReference<>() {
+                    });
+                    hits.add(new SearchHit(item.path("score").asDouble(0d), map));
+                }
+            }
+            return hits;
+        } catch (Exception ex) {
+            return List.of();
+        }
+    }
+
+    private HttpRequest.Builder requestBuilder(String url) {
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .timeout(Duration.ofSeconds(30))
+                .header("Content-Type", "application/json");
+        String apiKey = resolveQdrantApiKey();
+        if (StringUtils.hasText(apiKey)) {
+            builder.header("api-key", apiKey);
+        }
+        return builder;
+    }
+
+    private HttpResponse<String> send(HttpRequest request) throws Exception {
+        return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    private Object toPointId(String productId) {
+        if (!StringUtils.hasText(productId)) {
+            return 1L;
+        }
+        try {
+            return Long.parseLong(productId);
+        } catch (Exception ignored) {
+            return Math.abs((long) productId.hashCode()) + 1L;
+        }
+    }
+
+    private String resolveQdrantUrl() {
+        String value = aiProperties.getSemanticImage().getQdrantUrl();
+        if (StringUtils.hasText(value)) {
+            return value.trim();
+        }
+        String fallback = aiProperties.getRag().getQdrantUrl();
+        return StringUtils.hasText(fallback) ? fallback.trim() : "";
+    }
+
+    private String resolveQdrantApiKey() {
+        String value = aiProperties.getSemanticImage().getQdrantApiKey();
+        if (StringUtils.hasText(value)) {
+            return value.trim();
+        }
+        String fallback = aiProperties.getRag().getQdrantApiKey();
+        return StringUtils.hasText(fallback) ? fallback.trim() : "";
+    }
+
+    private String collectionName() {
+        String value = aiProperties.getSemanticImage().getQdrantCollection();
+        return StringUtils.hasText(value) ? value.trim() : "ecommerce_ai_product_image_semantic";
+    }
+
+    private int vectorSize() {
+        int configured = aiProperties.getSemanticImage().getVectorSize();
+        if (configured > 0) {
+            return Math.max(32, configured);
+        }
+        return Math.max(32, aiProperties.getRag().getEmbeddingDimension());
+    }
+
+    private String joinUrl(String baseUrl, String path) {
+        if (baseUrl.endsWith("/") && path.startsWith("/")) {
+            return baseUrl.substring(0, baseUrl.length() - 1) + path;
+        }
+        if (!baseUrl.endsWith("/") && !path.startsWith("/")) {
+            return baseUrl + "/" + path;
+        }
+        return baseUrl + path;
+    }
+
+    public record Point(String productId, float[] vector, Map<String, Object> payload) {
+    }
+
+    public record SearchHit(double score, Map<String, Object> payload) {
+    }
+}

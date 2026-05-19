@@ -1,10 +1,8 @@
 package org.example.agent;
 
 import org.example.config.AiProperties;
-import org.example.service.AiChatResult;
 import org.example.service.ChatServiceClient;
 import org.example.service.ConfirmationService;
-import org.example.service.PendingAction;
 import org.example.service.ReplyPolisherService;
 import org.example.service.ReturnReasonSummarizer;
 import org.example.service.action.ActionHandler;
@@ -13,6 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
+
+import org.example.service.dto.AiChatResult;
+import org.example.service.dto.PendingAction;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;

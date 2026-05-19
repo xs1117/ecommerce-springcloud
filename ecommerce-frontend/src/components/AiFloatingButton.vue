@@ -16,7 +16,7 @@ const openAi = () => emit('open');
         <path d="M8 16c.6 1 1.7 1.7 3 1.7s2.4-.7 3-1.7"></path>
       </svg>
     </span>
-    <span class="ai-floating-label">AI客服</span>
+    <span class="ai-floating-label">AI导购</span>
   </button>
 </template>
 

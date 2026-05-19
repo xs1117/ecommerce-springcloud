@@ -1,6 +1,6 @@
 package org.example.agent;
 
-import org.example.service.AiChatResult;
+import org.example.service.dto.AiChatResult;
 
 public interface CustomerAgent {
 

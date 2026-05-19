@@ -1,4 +1,4 @@
-package org.example.service;
+package org.example.service.dto;
 
 import java.time.Instant;
 
@@ -24,4 +24,5 @@ public record PendingAction(
         return STAGE_COLLECT_RETURN_REASON.equalsIgnoreCase(stage);
     }
 }
+
 
