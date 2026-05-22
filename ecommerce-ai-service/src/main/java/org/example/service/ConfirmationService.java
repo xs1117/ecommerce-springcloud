@@ -1,6 +1,7 @@
 package org.example.service;
 
 import org.example.config.AiProperties;
+import org.example.service.dto.PendingAction;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;

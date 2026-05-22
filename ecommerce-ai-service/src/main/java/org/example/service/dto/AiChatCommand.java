@@ -1,4 +1,4 @@
-package org.example.service;
+package org.example.service.dto;
 
 public record AiChatCommand(
         String message,
@@ -9,4 +9,5 @@ public record AiChatCommand(
         java.util.List<ChatTurn> history
 ) {
 }
+
 

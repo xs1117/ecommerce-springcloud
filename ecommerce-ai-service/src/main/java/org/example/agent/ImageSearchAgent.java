@@ -1,12 +1,13 @@
 package org.example.agent;
 
 import org.example.config.AiProperties;
-import org.example.service.AiChatResult;
 import org.example.service.MerchantCatalogClient;
 import org.example.service.ReplyPolisherService;
 import org.example.service.ProductImageCompareService;
 import org.example.service.ProductImageIndexSyncService;
+import org.example.service.ProductImageSemanticSearchService;
 import org.example.service.VisionRecognitionService;
+import org.example.service.dto.AiChatResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class ImageSearchAgent implements CustomerAgent {
     private final MerchantCatalogClient merchantCatalogClient;
     private final ProductImageCompareService productImageCompareService;
     private final ProductImageIndexSyncService productImageIndexSyncService;
+    private final ProductImageSemanticSearchService productImageSemanticSearchService;
     private final ReplyPolisherService replyPolisherService;
 
     public ImageSearchAgent(AiProperties aiProperties,
@@ -34,12 +36,14 @@ public class ImageSearchAgent implements CustomerAgent {
                             MerchantCatalogClient merchantCatalogClient,
                             ProductImageCompareService productImageCompareService,
                             ProductImageIndexSyncService productImageIndexSyncService,
+                            ProductImageSemanticSearchService productImageSemanticSearchService,
                             ReplyPolisherService replyPolisherService) {
         this.aiProperties = aiProperties;
         this.visionRecognitionService = visionRecognitionService;
         this.merchantCatalogClient = merchantCatalogClient;
         this.productImageCompareService = productImageCompareService;
         this.productImageIndexSyncService = productImageIndexSyncService;
+        this.productImageSemanticSearchService = productImageSemanticSearchService;
         this.replyPolisherService = replyPolisherService;
     }
 
@@ -85,8 +89,6 @@ public class ImageSearchAgent implements CustomerAgent {
             } catch (Exception ex) {
                 log.warn("Failed to log raw matched payload: {}", ex.getMessage(), ex);
             }
-        }
-        if (similarProducts != null && !similarProducts.isEmpty()) {
             String reply = polishReply(
                     "图片搜索-高相似商品",
                     "我已将你上传的图片与平台现有商品图进行比对，找到 " + similarProducts.size() + " 个高相似商品，你可以直接查看下方结果。",
@@ -106,6 +108,31 @@ public class ImageSearchAgent implements CustomerAgent {
                     similarProducts
             );
         }
+
+        if (productImageSemanticSearchService != null && productImageSemanticSearchService.isEnabled()) {
+            List<Map<String, Object>> semanticProducts = productImageSemanticSearchService.searchByImage(imageUrl, sanitizedMessage);
+            if (semanticProducts != null && !semanticProducts.isEmpty()) {
+                String reply = polishReply(
+                        "图片搜索-语义匹配",
+                        "我已理解图片语义，并为你匹配到 " + semanticProducts.size() + " 个相关商品，可直接查看下方结果。",
+                        sanitizedMessage,
+                        "matchedCount=" + semanticProducts.size()
+                );
+                return new AiChatResult(
+                        aiProperties.getModel(),
+                        reply,
+                        polishReply("图片搜索-思考", "已完成语义向量检索并返回结果", sanitizedMessage, "matchedCount=" + semanticProducts.size()),
+                        false,
+                        null,
+                        null,
+                        false,
+                        null,
+                        "",
+                        semanticProducts
+                );
+            }
+        }
+
         VisionRecognitionService.VisionResult vision = visionRecognitionService == null
                 ? VisionRecognitionService.VisionResult.fallback(sanitizedMessage)
                 : visionRecognitionService.recognizeProduct(imageUrl, sanitizedMessage);
@@ -150,6 +177,7 @@ public class ImageSearchAgent implements CustomerAgent {
             );
         }
 
+        String productName = (vision != null && StringUtils.hasText(vision.productName())) ? vision.productName() : keyword;
         List<Map<String, Object>> products;
         try {
             List<Map<String, Object>> found = merchantCatalogClient == null
@@ -162,9 +190,8 @@ public class ImageSearchAgent implements CustomerAgent {
         }
 
         if (products.isEmpty()) {
-            String productName = (vision != null && StringUtils.hasText(vision.productName())) ? vision.productName() : keyword;
             String reply = polishReply(
-                    "图片搜索-未命中商品",
+                    "图片搜索-未命中",
                     "我识别到可能是【" + productName + "】，但暂时没有找到匹配商品。你可以换个角度拍摄，或补充品牌/型号让我继续帮你找。",
                     sanitizedMessage,
                     "productName=" + productName
@@ -183,7 +210,6 @@ public class ImageSearchAgent implements CustomerAgent {
             );
         }
 
-        String productName = (vision != null && StringUtils.hasText(vision.productName())) ? vision.productName() : keyword;
         String reply = polishReply(
                 "图片搜索-匹配商品",
                 "我识别到可能是【" + productName + "】。已为你匹配到 " + products.size() + " 个相关商品，可直接点击下方卡片查看详情。",
@@ -286,5 +312,4 @@ public class ImageSearchAgent implements CustomerAgent {
                 : replyPolisherService.polish(scenario, draftReply, userMessage, facts, null);
     }
 }
-
 

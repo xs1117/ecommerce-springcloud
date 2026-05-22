@@ -2,8 +2,8 @@ package org.example.controller;
 
 import jakarta.validation.Valid;
 import org.example.security.AuthenticatedUser;
-import org.example.service.AiChatCommand;
-import org.example.service.AiChatResult;
+import org.example.service.dto.AiChatCommand;
+import org.example.service.dto.AiChatResult;
 import org.example.service.AiCustomerService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -47,7 +47,7 @@ public class AiChatController {
             String orderNo,
             String confirmationToken,
             Boolean confirm,
-            java.util.List<org.example.service.ChatTurn> history
+            java.util.List<org.example.service.dto.ChatTurn> history
     ) {
     }
 }

@@ -6,9 +6,13 @@ import org.example.agent.ConversationContext;
 import org.example.agent.CustomerAgent;
 import org.example.agent.GeneralAnswerAgent;
 import org.example.agent.ImageSearchAgent;
+import org.example.agent.IntentGuidedShoppingAgent;
 import org.example.config.AiProperties;
 import org.example.security.AuthenticatedUser;
 import org.example.service.action.ActionRegistry;
+import org.example.service.dto.AiChatCommand;
+import org.example.service.dto.AiChatResult;
+import org.example.service.dto.PendingAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
@@ -43,7 +47,7 @@ public class AiCustomerService {
                              ChatServiceClient chatServiceClient,
                              OrderServiceClient orderServiceClient,
                              ActionRegistry actionRegistry) {
-        this(chatClient, aiProperties, ragService, confirmationService, returnReasonSummarizer, replyPolisherService, chatServiceClient, orderServiceClient, actionRegistry, null, null, null, null);
+        this(chatClient, aiProperties, ragService, confirmationService, returnReasonSummarizer, replyPolisherService, chatServiceClient, orderServiceClient, actionRegistry, null, null, null, null, null);
     }
 
     @Autowired
@@ -59,10 +63,12 @@ public class AiCustomerService {
                              VisionRecognitionService visionRecognitionService,
                              MerchantCatalogClient merchantCatalogClient,
                              ProductImageCompareService productImageCompareService,
-                             ProductImageIndexSyncService productImageIndexSyncService) {
+                             ProductImageIndexSyncService productImageIndexSyncService,
+                             ProductImageSemanticSearchService productImageSemanticSearchService) {
         this.agentRouter = new AgentRouter(List.of(
                 new AfterSaleAgent(aiProperties, confirmationService, chatServiceClient, actionRegistry, returnReasonSummarizer, replyPolisherService),
-                new ImageSearchAgent(aiProperties, visionRecognitionService, merchantCatalogClient, productImageCompareService, productImageIndexSyncService, replyPolisherService),
+                new ImageSearchAgent(aiProperties, visionRecognitionService, merchantCatalogClient, productImageCompareService, productImageIndexSyncService, productImageSemanticSearchService, replyPolisherService),
+                new IntentGuidedShoppingAgent(chatClient, aiProperties, merchantCatalogClient, replyPolisherService),
                 new GeneralAnswerAgent(chatClient, aiProperties, ragService, orderServiceClient, replyPolisherService)
         ));
         this.confirmationService = confirmationService;

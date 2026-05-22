@@ -1,7 +1,7 @@
-package org.example.service;
+package org.example.service.dto;
 
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 
 public record AiChatResult(
         String model,

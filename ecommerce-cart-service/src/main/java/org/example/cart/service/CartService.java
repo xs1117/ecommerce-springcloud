@@ -1,13 +1,11 @@
 package org.example.cart.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.cart.integration.IntegrationEndpointResolver;
 import org.example.cart.dto.AddCartItemRequest;
 import org.example.cart.dto.CartBehaviorRequest;
 import org.example.cart.dto.UpdateCartItemRequest;
+import org.example.cart.store.CartStore;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -17,36 +15,29 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class CartService {
 
-    private static final String CART_ITEMS_KEY_PREFIX = "cart:items:";
-    private static final String CART_BEHAVIOR_KEY_PREFIX = "cart:behavior:";
     private static final int BEHAVIOR_LIMIT = 100;
 
-    private final StringRedisTemplate redisTemplate;
-    private final ObjectMapper objectMapper;
+    private final CartStore cartStore;
     private final IntegrationEndpointResolver endpointResolver;
     private final RestTemplate restTemplate;
     private final String merchantServiceId;
     private final String merchantBaseUrl;
 
-    public CartService(StringRedisTemplate redisTemplate,
-                       ObjectMapper objectMapper,
+    public CartService(CartStore cartStore,
                        IntegrationEndpointResolver endpointResolver,
                        @Value("${app.integration.merchant.service-id:ecommerce-merchant-service}") String merchantServiceId,
                        @Value("${app.integration.merchant.base-url:http://localhost:8084}") String merchantBaseUrl) {
-        this.redisTemplate = redisTemplate;
-        this.objectMapper = objectMapper;
+        this.cartStore = cartStore;
         this.endpointResolver = endpointResolver;
         this.restTemplate = new RestTemplate();
         this.merchantServiceId = merchantServiceId;
@@ -143,14 +134,14 @@ public class CartService {
 
     public Map<String, Object> removeItem(Long userId, String itemId) {
         Map<String, Object> item = getItemMap(userId, itemId);
-        redisTemplate.opsForHash().delete(cartItemsKey(userId), itemId);
+        cartStore.deleteItem(userId, itemId);
         recordBehavior(userId, toBehaviorMap("REMOVE_ITEM", longValue(item.get("productId"), null), itemId, item.get("quantity"), String.valueOf(item.getOrDefault("source", "cart")), "移除购物车商品"));
         return normalizeItem(item);
     }
 
     public Map<String, Object> clearCart(Long userId) {
         List<Map<String, Object>> items = listItems(userId);
-        redisTemplate.delete(cartItemsKey(userId));
+        cartStore.clearItems(userId);
         recordBehavior(userId, toBehaviorMap("CLEAR_CART", null, null, items.size(), "cart", "清空购物车"));
         return Map.of("success", true, "removed", items.size());
     }
@@ -175,13 +166,7 @@ public class CartService {
 
     public List<Map<String, Object>> recentBehaviors(Long userId, int limit) {
         int max = Math.max(1, Math.min(limit, BEHAVIOR_LIMIT));
-        List<String> values = redisTemplate.opsForList().range(cartBehaviorKey(userId), 0, max - 1);
-        if (values == null || values.isEmpty()) {
-            return List.of();
-        }
-        return values.stream()
-                .map(this::parseMap)
-                .collect(Collectors.toList());
+        return cartStore.recentBehaviors(userId, max);
     }
 
     private Map<String, Object> buildSummary(Long userId, List<Map<String, Object>> items) {
@@ -216,30 +201,19 @@ public class CartService {
     }
 
     private List<Map<String, Object>> loadItems(Long userId) {
-        Map<Object, Object> values = redisTemplate.opsForHash().entries(cartItemsKey(userId));
-        if (values == null || values.isEmpty()) {
-            return new ArrayList<>();
-        }
-        return values.values().stream()
-                .map(String::valueOf)
-                .map(this::parseMap)
-                .collect(Collectors.toCollection(ArrayList::new));
+        return cartStore.loadItems(userId);
     }
 
     private void upsertItem(Long userId, Map<String, Object> item) {
-        try {
-            redisTemplate.opsForHash().put(cartItemsKey(userId), String.valueOf(item.get("id")), objectMapper.writeValueAsString(item));
-        } catch (Exception ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "购物车保存失败", ex);
-        }
+        cartStore.upsertItem(userId, item);
     }
 
     private Map<String, Object> getItemMap(Long userId, String itemId) {
-        Object raw = redisTemplate.opsForHash().get(cartItemsKey(userId), itemId);
-        if (raw == null) {
+        Map<String, Object> item = cartStore.getItem(userId, itemId);
+        if (item == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "购物车商品不存在");
         }
-        return parseMap(String.valueOf(raw));
+        return item;
     }
 
     private Optional<Map<String, Object>> findItemByProductId(List<Map<String, Object>> items, Long productId) {
@@ -261,12 +235,7 @@ public class CartService {
     }
 
     private void recordBehavior(Long userId, Map<String, Object> event) {
-        try {
-            String key = cartBehaviorKey(userId);
-            redisTemplate.opsForList().leftPush(key, objectMapper.writeValueAsString(event));
-            redisTemplate.opsForList().trim(key, 0, BEHAVIOR_LIMIT - 1);
-        } catch (Exception ignored) {
-        }
+        cartStore.recordBehavior(userId, event);
     }
 
     private Map<String, Object> toBehaviorMap(String action, Long productId, String itemId, Object quantity, String source, String detail) {
@@ -305,26 +274,10 @@ public class CartService {
         return result;
     }
 
-    private Map<String, Object> parseMap(String json) {
-        try {
-            return objectMapper.readValue(json, new TypeReference<>() {
-            });
-        } catch (Exception ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "购物车数据解析失败", ex);
-        }
-    }
-
     private Comparator<Map<String, Object>> itemComparator() {
         return Comparator.comparingLong((Map<String, Object> item) -> longValue(item.get("createdAt"), 0L)).reversed();
     }
 
-    private String cartItemsKey(Long userId) {
-        return CART_ITEMS_KEY_PREFIX + userId;
-    }
-
-    private String cartBehaviorKey(Long userId) {
-        return CART_BEHAVIOR_KEY_PREFIX + userId;
-    }
 
     private int clampQuantity(int quantity) {
         return Math.max(1, Math.min(quantity, 99));

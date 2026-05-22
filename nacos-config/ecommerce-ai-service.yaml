@@ -25,13 +25,24 @@ ai:
     image-base-url: ${AI_IMAGE_COMPARE_IMAGE_BASE_URL:http://localhost:8084}
     index-on-startup: ${AI_IMAGE_COMPARE_INDEX_ON_STARTUP:true}
     sync-page-size: ${AI_IMAGE_COMPARE_SYNC_PAGE_SIZE:200}
-    incremental-sync-delay-millis: ${AI_IMAGE_COMPARE_INCREMENTAL_SYNC_DELAY_MILLIS:30000}
+    incremental-sync-delay-millis: ${AI_IMAGE_COMPARE_INCREMENTAL_SYNC_DELAY_MILLIS:120000}
     candidate-limit: ${AI_IMAGE_COMPARE_CANDIDATE_LIMIT:80}
     top-k: ${AI_IMAGE_COMPARE_TOP_K:6}
     minimum-score: ${AI_IMAGE_COMPARE_MINIMUM_SCORE:0.70}
+  semantic-image:
+    enabled: ${AI_SEMANTIC_IMAGE_ENABLED:true}
+    force-base64: ${AI_SEMANTIC_IMAGE_FORCE_BASE64:true}
+    model: ${AI_SEMANTIC_IMAGE_MODEL:gpt-5.1-high}
+    prompt: '${AI_SEMANTIC_IMAGE_PROMPT:请用简洁中文描述图片中的商品，仅输出商品描述，不要思考过程，不要解释，不要输出<think>等标签。描述覆盖品类、外观、颜色、材质、风格、用途、品牌或图案等关键信息。如图片与用户补充冲突，以图片为准。}'
+    qdrant-url: ${AI_SEMANTIC_IMAGE_QDRANT_URL:${AI_QDRANT_URL:http://localhost:6333}}
+    qdrant-api-key: ${AI_SEMANTIC_IMAGE_QDRANT_API_KEY:${AI_QDRANT_API_KEY:}}
+    qdrant-collection: ${AI_SEMANTIC_IMAGE_QDRANT_COLLECTION:ecommerce_ai_product_image_semantic}
+    vector-size: ${AI_SEMANTIC_IMAGE_VECTOR_SIZE:${AI_EMBEDDING_DIMENSION:256}}
+    top-k: ${AI_SEMANTIC_IMAGE_TOP_K:8}
+    minimum-score: ${AI_SEMANTIC_IMAGE_MINIMUM_SCORE:0.6}
   vision:
     enabled: ${AI_VISION_ENABLED:true}
-    model: ${AI_VISION_MODEL:}
+    model: ${AI_VISION_MODEL:gpt-5.1-high}
     prompt: '${AI_VISION_PROMPT:请识别图片中的商品，并仅返回JSON对象：{"productName":"","keyword":"","confidence":"high|medium|low"}。keyword用于商品检索，应尽量简洁。}'
   rag:
     vector-enabled: ${AI_RAG_VECTOR_ENABLED:true}

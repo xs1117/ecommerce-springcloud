@@ -1,7 +1,6 @@
 package org.example.agent;
 
 import org.example.config.AiProperties;
-import org.example.service.AiChatResult;
 import org.example.service.OrderServiceClient;
 import org.example.service.ReplyPolisherService;
 import org.example.service.RagService;
@@ -16,6 +15,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.example.service.dto.AiChatResult;
+import org.example.service.dto.ChatTurn;
 
 @Service
 public class GeneralAnswerAgent implements CustomerAgent {
@@ -278,14 +280,14 @@ public class GeneralAnswerAgent implements CustomerAgent {
         return "";
     }
 
-    private String buildHistoryContext(List<org.example.service.ChatTurn> history) {
+    private String buildHistoryContext(List<ChatTurn> history) {
         if (history == null || history.isEmpty()) {
             return "";
         }
         StringBuilder builder = new StringBuilder();
         int start = Math.max(0, history.size() - 8);
         for (int i = start; i < history.size(); i++) {
-            org.example.service.ChatTurn turn = history.get(i);
+            ChatTurn turn = history.get(i);
             if (turn == null || !StringUtils.hasText(turn.content())) {
                 continue;
             }

@@ -1,6 +1,7 @@
 package org.example.service;
 
 import org.example.config.AiProperties;
+import org.example.service.dto.PendingAction;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;

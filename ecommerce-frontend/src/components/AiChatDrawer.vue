@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { sendAiMessage, uploadAiImage } from '../services/ai';
 import { ensureCurrentUserId } from '../services/auth';
 import { getOrderDetail, queryOrders } from '../services/order';
@@ -31,6 +31,81 @@ const selectedImageName = ref('');
 const imageUploading = ref(false);
 const fileInputRef = ref(null);
 const THINKING_VISIBLE_MS = 2400;
+
+const speechSupported = ref(false);
+const isRecording = ref(false);
+const speechError = ref('');
+const recognitionRef = ref(null);
+const baseInputAtStart = ref('');
+
+const resolveSpeechRecognition = () => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  return window.SpeechRecognition || window.webkitSpeechRecognition || null;
+};
+
+speechSupported.value = !!resolveSpeechRecognition();
+
+const ensureSpeechRecognition = () => {
+  if (recognitionRef.value) {
+    return recognitionRef.value;
+  }
+  const SpeechRecognition = resolveSpeechRecognition();
+  if (!SpeechRecognition) {
+    speechSupported.value = false;
+    return null;
+  }
+  speechSupported.value = true;
+  const recognition = new SpeechRecognition();
+  recognition.lang = 'zh-CN';
+  recognition.interimResults = true;
+  recognition.continuous = true;
+  recognition.onresult = (event) => {
+    let finalText = '';
+    let interimText = '';
+    for (let i = event.resultIndex; i < event.results.length; i += 1) {
+      const result = event.results[i];
+      if (result.isFinal) {
+        finalText += result[0].transcript;
+      } else {
+        interimText += result[0].transcript;
+      }
+    }
+    inputText.value = `${baseInputAtStart.value}${finalText}${interimText}`.trim();
+  };
+  recognition.onerror = (event) => {
+    speechError.value = event?.error ? `语音识别失败：${event.error}` : '语音识别失败';
+    isRecording.value = false;
+  };
+  recognition.onend = () => {
+    isRecording.value = false;
+  };
+  recognitionRef.value = recognition;
+  return recognition;
+};
+
+const toggleVoiceInput = () => {
+  speechError.value = '';
+  const recognition = ensureSpeechRecognition();
+  if (!recognition) {
+    speechError.value = '当前浏览器不支持语音输入';
+    return;
+  }
+  if (isRecording.value) {
+    recognition.stop();
+    return;
+  }
+  baseInputAtStart.value = inputText.value ? `${inputText.value.trim()} ` : '';
+  isRecording.value = true;
+  recognition.start();
+};
+
+onBeforeUnmount(() => {
+  if (recognitionRef.value) {
+    recognitionRef.value.stop();
+  }
+});
 
 const ORDER_STATUS_TEXT = {
   CREATED: '待支付(确认中)',
@@ -317,7 +392,7 @@ const ensureWelcome = () => {
   if (messages.value.length) {
     return;
   }
-  appendMessage('assistant', '你好，我是AI客服。你可以告诉我你的问题，涉及退货我会先让你二次确认。');
+  appendMessage('assistant', '你好，我是AI导购。你可以告诉我你的问题，涉及退货我会先让你二次确认。');
 };
 
 const openImagePicker = () => {
@@ -539,7 +614,7 @@ watch(orderNo, (next) => {
     <aside class="ai-drawer">
       <header class="ai-drawer-header">
         <div>
-          <h2>AI客服</h2>
+          <h2>AI导购</h2>
           <p>可咨询问题，或发起退货申请</p>
         </div>
         <button class="btn btn-outline" @click="closeDrawer">关闭</button>
@@ -656,14 +731,39 @@ watch(orderNo, (next) => {
             placeholder="请输入问题，或上传商品图片让我帮你找同款"
             @keydown.enter="submit"
           />
+          <button
+            type="button"
+            class="btn btn-outline ai-voice-btn"
+            :disabled="sending || imageUploading"
+            :title="speechSupported ? '语音输入' : '浏览器不支持语音输入'"
+            @click="toggleVoiceInput"
+          >
+            <svg class="ai-voice-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 14a3 3 0 0 0 3-3V7a3 3 0 0 0-6 0v4a3 3 0 0 0 3 3zm7-3a1 1 0 1 0-2 0 5 5 0 0 1-10 0 1 1 0 1 0-2 0 7 7 0 0 0 6 6.93V21a1 1 0 1 0 2 0v-3.07A7 7 0 0 0 19 11z" />
+            </svg>
+          </button>
           <button class="btn btn-accent" :disabled="!canSubmit" @click="submit">发送</button>
         </div>
+        <p v-if="speechError" class="ai-error">{{ speechError }}</p>
       </footer>
     </aside>
   </div>
 </template>
 
 <style scoped>
+.ai-voice-btn {
+  min-width: 36px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ai-voice-icon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
 .ai-drawer-wrapper {
   position: fixed;
   inset: 0;
@@ -1026,7 +1126,7 @@ watch(orderNo, (next) => {
 
 .ai-input-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   gap: 8px;
 }
 

@@ -24,6 +24,7 @@ public class AiProperties {
     private RagProperties rag = new RagProperties();
     private VisionProperties vision = new VisionProperties();
     private ImageCompareProperties imageCompare = new ImageCompareProperties();
+    private SemanticImageProperties semanticImage = new SemanticImageProperties();
 
     public String getProvider() {
         return provider;
@@ -153,6 +154,14 @@ public class AiProperties {
         this.imageCompare = imageCompare;
     }
 
+    public SemanticImageProperties getSemanticImage() {
+        return semanticImage;
+    }
+
+    public void setSemanticImage(SemanticImageProperties semanticImage) {
+        this.semanticImage = semanticImage;
+    }
+
     public static class ImageCompareProperties {
         private boolean enabled = true;
         private boolean qdrantEnabled = true;
@@ -236,6 +245,99 @@ public class AiProperties {
 
         public void setSyncPageSize(int syncPageSize) {
             this.syncPageSize = syncPageSize;
+        }
+
+        public int getTopK() {
+            return topK;
+        }
+
+        public void setTopK(int topK) {
+            this.topK = topK;
+        }
+
+        public double getMinimumScore() {
+            return minimumScore;
+        }
+
+        public void setMinimumScore(double minimumScore) {
+            this.minimumScore = minimumScore;
+        }
+    }
+
+    public static class SemanticImageProperties {
+        private boolean enabled = true;
+        private boolean forceBase64 = false;
+        private String model = "gpt-5.1-high";
+        private String prompt = "请用简洁中文描述图片中的商品，仅输出商品描述，不要思考过程，不要解释，不要输出<think>等标签。描述覆盖品类、外观、颜色、材质、风格、用途、品牌或图案等关键信息。如图片与用户补充冲突，以图片为准。";
+        private String qdrantUrl;
+        private String qdrantApiKey;
+        private String qdrantCollection = "ecommerce_ai_product_image_semantic";
+        private int vectorSize = 256;
+        private int topK = 8;
+        private double minimumScore = 0.35d;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public boolean isForceBase64() {
+            return forceBase64;
+        }
+
+        public void setForceBase64(boolean forceBase64) {
+            this.forceBase64 = forceBase64;
+        }
+
+        public String getModel() {
+            return model;
+        }
+
+        public void setModel(String model) {
+            this.model = model;
+        }
+
+        public String getPrompt() {
+            return prompt;
+        }
+
+        public void setPrompt(String prompt) {
+            this.prompt = prompt;
+        }
+
+        public String getQdrantUrl() {
+            return qdrantUrl;
+        }
+
+        public void setQdrantUrl(String qdrantUrl) {
+            this.qdrantUrl = qdrantUrl;
+        }
+
+        public String getQdrantApiKey() {
+            return qdrantApiKey;
+        }
+
+        public void setQdrantApiKey(String qdrantApiKey) {
+            this.qdrantApiKey = qdrantApiKey;
+        }
+
+        public String getQdrantCollection() {
+            return qdrantCollection;
+        }
+
+        public void setQdrantCollection(String qdrantCollection) {
+            this.qdrantCollection = qdrantCollection;
+        }
+
+        public int getVectorSize() {
+            return vectorSize;
+        }
+
+        public void setVectorSize(int vectorSize) {
+            this.vectorSize = vectorSize;
         }
 
         public int getTopK() {

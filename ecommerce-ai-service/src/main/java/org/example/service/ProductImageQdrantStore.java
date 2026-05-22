@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.example.config.AiProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -13,6 +15,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Component
 public class ProductImageQdrantStore {
 
+    private static final Logger log = LoggerFactory.getLogger(ProductImageQdrantStore.class);
     private static final int VECTOR_SIZE = 64;
 
     private final AiProperties aiProperties;
@@ -50,16 +54,16 @@ public class ProductImageQdrantStore {
                 return;
             }
             try {
-                String url = joinUrl(resolveQdrantUrl(), "/collections/" + collectionName());
-                Map<String, Object> body = Map.of("vectors", Map.of("size", VECTOR_SIZE, "distance", "Cosine"));
-                HttpResponse<String> response = send(requestBuilder(url)
-                        .PUT(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(body)))
-                        .build());
-                if ((response.statusCode() >= 200 && response.statusCode() < 300) || response.statusCode() == 409) {
-                    collectionReady.set(true);
-                    return;
+                Integer existingSize = fetchCollectionVectorSize();
+                if (existingSize != null && existingSize != VECTOR_SIZE) {
+                    log.warn("Product image hash collection vector size mismatch. expected={}, actual={}, recreating.", VECTOR_SIZE, existingSize);
+                    deleteCollection();
+                    existingSize = null;
                 }
-                throw new IllegalStateException("create product image collection failed: " + response.statusCode() + " " + response.body());
+                if (existingSize == null) {
+                    createCollection();
+                }
+                collectionReady.set(true);
             } catch (Exception ex) {
                 throw new IllegalStateException("Unable to initialize product image Qdrant collection", ex);
             }
@@ -71,19 +75,70 @@ public class ProductImageQdrantStore {
             return;
         }
         try {
-            String url = joinUrl(resolveQdrantUrl(), "/collections/" + collectionName());
-            HttpResponse<String> response = send(requestBuilder(url)
-                    .DELETE()
-                    .build());
-            if ((response.statusCode() >= 200 && response.statusCode() < 300) || response.statusCode() == 404) {
-                collectionReady.set(false);
-                ensureCollection();
-                return;
-            }
-            throw new IllegalStateException("clear product image index failed: " + response.statusCode() + " " + response.body());
+            deleteCollection();
+            ensureCollection();
         } catch (Exception ex) {
             throw new IllegalStateException("Failed to clear product image index", ex);
         }
+    }
+
+    private void createCollection() throws Exception {
+        String url = joinUrl(resolveQdrantUrl(), "/collections/" + collectionName());
+        Map<String, Object> body = Map.of("vectors", Map.of("size", VECTOR_SIZE, "distance", "Cosine"));
+        HttpResponse<String> response = send(requestBuilder(url)
+                .PUT(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(body)))
+                .build());
+        if ((response.statusCode() >= 200 && response.statusCode() < 300) || response.statusCode() == 409) {
+            return;
+        }
+        throw new IllegalStateException("create product image collection failed: " + response.statusCode() + " " + response.body());
+    }
+
+    private void deleteCollection() throws Exception {
+        String url = joinUrl(resolveQdrantUrl(), "/collections/" + collectionName());
+        HttpResponse<String> response = send(requestBuilder(url)
+                .DELETE()
+                .build());
+        if ((response.statusCode() >= 200 && response.statusCode() < 300) || response.statusCode() == 404) {
+            collectionReady.set(false);
+            return;
+        }
+        throw new IllegalStateException("clear product image index failed: " + response.statusCode() + " " + response.body());
+    }
+
+    private Integer fetchCollectionVectorSize() {
+        if (!isAvailable()) {
+            return null;
+        }
+        try {
+            String url = joinUrl(resolveQdrantUrl(), "/collections/" + collectionName());
+            HttpResponse<String> response = send(requestBuilder(url).GET().build());
+            if (response.statusCode() == 404) {
+                return null;
+            }
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                return null;
+            }
+            JsonNode root = objectMapper.readTree(response.body());
+            JsonNode vectors = root.path("result").path("config").path("params").path("vectors");
+            if (vectors.isObject()) {
+                JsonNode sizeNode = vectors.get("size");
+                if (sizeNode != null && sizeNode.isNumber()) {
+                    return sizeNode.asInt();
+                }
+                Iterator<Map.Entry<String, JsonNode>> fields = vectors.fields();
+                while (fields.hasNext()) {
+                    JsonNode node = fields.next().getValue();
+                    JsonNode fieldSize = node.get("size");
+                    if (fieldSize != null && fieldSize.isNumber()) {
+                        return fieldSize.asInt();
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            return null;
+        }
+        return null;
     }
 
     public long count() {
@@ -256,5 +311,3 @@ public class ProductImageQdrantStore {
     public record SearchHit(double score, Map<String, Object> payload) {
     }
 }
-
-
